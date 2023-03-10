@@ -21,6 +21,7 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
+app.use(`${mainRoute}/waiting-list`, require("./src/routes/waitingList"));
 
 app.use(errorHandler);
 

@@ -1,18 +1,5 @@
 const mongoose = require("mongoose");
 
-// const createSchemaType = (enumValues) => {
-//   return new mongoose.SchemaType({
-//     name: "essentials",
-//     validate: {
-//       validator: (v) => {
-//         console.log(v);
-//         return enumValues.includes(v);
-//       },
-//       message: "Invalid value for enum!",
-//     },
-//   });
-// };
-
 const userSchema = mongoose.Schema(
   {
     nama: {
@@ -30,30 +17,131 @@ const userSchema = mongoose.Schema(
       maxlength: [30, "Email cannot be more than 30 characters"],
       unique: true,
     },
-    type: {
+    userType: {
       type: String,
       enum: ["admin", "orangtua", "anak"],
       required: [true, "Please add your type"],
     },
-    essentials: {
-        type: Object,
-        required: [true, "Please add your essentials"],
-    }
-    
   },
   {
     timestamps: true,
   }
 );
 
-// userSchema.path("type").set((v) => {
-//   const enumValues = this.schema.paths.type.enumValues;
-//   const customType = createSchemaType(enumValues);
-//   console.group("types");
-//   console.log({ customType });
-//   console.log({ enumValues });
-//   this.schema.path("color", customType);
-//   return v;
-// });
+const admin = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: [true, "Please add your username"],
+      maxlength: [20, "Username cannot be more than 20 characters"],
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: [true, "Please add your password"],
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+const orangtua = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      required: [true, "Please add your username"],
+      maxlength: [20, "Username cannot be more than 20 characters"],
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: [true, "Please add your password"],
+    },
+    address: {
+      type: String,
+      required: [true, "Please add your address"],
+      maxlength: [100, "Address cannot be more than 100 characters"],
+    },
+    dataAnak: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+    dataBilling: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+    kidsAnalytics: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+const anak = new mongoose.Schema(
+  {
+    poin: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    character: {
+      gender: {
+        type: Boolean,
+        required: true,
+        default: false, // false cowo | true cewe
+      },
+      baju: {
+        type: [mongoose.Schema.Types.ObjectId],
+        required: false,
+      },
+      celana: {
+        type: [mongoose.Schema.Types.ObjectId],
+        required: false,
+      },
+      aksesorisTangan: {
+        type: [mongoose.Schema.Types.ObjectId],
+        required: false,
+      },
+      aksesorisKepala: {
+        type: [mongoose.Schema.Types.ObjectId],
+        required: false,
+      },
+      aksesorisMuka: {
+        type: [mongoose.Schema.Types.ObjectId],
+        required: false,
+      },
+    },
+    listCourse: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+userSchema.path("userType").set((v) => {
+  console.log({ v });
+  const enumValues = userSchema.paths.userType.enumValues;
+  switch (v) {
+    case enumValues[0]:
+      userSchema.path("essentials", admin);
+      break;
+    case enumValues[1]:
+      userSchema.path("essentials", orangtua);
+      break;
+    case enumValues[2]:
+      userSchema.path("essentials", anak);
+      break;
+    default:
+      throw Error("Invalid userType");
+  }
+  return v;
+});
 
 module.exports = mongoose.model("user", userSchema);

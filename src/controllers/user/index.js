@@ -38,7 +38,8 @@ exports.loginUser = asyncHandler(async (req, res) => {
 
 exports.createUser = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(req.body.password, salt);
+  const hashedPassword =
+    req.body.password && (await bcrypt.hash(req.body.password, salt));
 
   const admin = {
     username: req.body.username,
@@ -50,28 +51,29 @@ exports.createUser = asyncHandler(async (req, res) => {
     address: req.body.address,
   };
   const anak = {
-    poin: req.body.poin,
+    poin: 0,
   };
 
   const newUser = new user({
     nama: req.body.nama,
     lahir: req.body.lahir,
     email: req.body.email,
-    type: req.body.type,
+    userType: req.body.userType,
     essentials:
-      req.body.type === "admin"
+      req.body.userType === "admin"
         ? admin
-        : req.body.type === "orangtua"
+        : req.body.userType === "orangtua"
         ? orangtua
         : anak,
   });
 
   try {
     const createdUser = await newUser.save();
+
     const newToken = generateToken(createdUser._id);
     res.status(201).json({ id: createdUser._doc._id, token: newToken });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: err.message, stack: err });
   }
 });
 
@@ -83,6 +85,25 @@ exports.reLogin = asyncHandler(async (req, res) => {
       res.status(200).json({
         ...userExist._doc,
       });
+    } else {
+      res.status(400);
+      throw new Error("Invalid User Credentials");
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+exports.updateUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const data = { ...req.body };
+  try {
+    const userExist = await user.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+    });
+    if (userExist) {
+      res.status(200).json(userExist);
     } else {
       res.status(400);
       throw new Error("Invalid User Credentials");
