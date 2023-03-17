@@ -2,8 +2,8 @@ require("dotenv").config();
 const mainRoute = "/api/v1";
 const express = require("express");
 const cors = require("cors");
-const dbConnect = require("./src/configs/db_config");
-const { errorHandler } = require("./src/middlewares/error_handler");
+const dbConnect = require("./src/configs/db-config");
+const { errorHandler } = require("./src/middlewares/error-handler");
 
 dbConnect();
 
@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 
 // Email validation route
-app.use(`/user`, require("./src/routes/userValidation"));
+app.use(`/user`, require("./src/routes/user-validation"));
 
 app.use(errorHandler);
 
