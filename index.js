@@ -21,7 +21,9 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
-app.use(`${mainRoute}/waiting-list`, require("./src/routes/waitingList"));
+
+// Email validation route
+app.use(`/user`, require("./src/routes/userValidation"));
 
 app.use(errorHandler);
 
