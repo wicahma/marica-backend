@@ -7,14 +7,14 @@ const {
   reLogin,
   updateUser,
   deleteUser,
+  updatePassword,
 } = require("../controllers/user");
 const { authJWT } = require("../middlewares/auth");
 
-router.get("/", authJWT, getAllUsers);
-router.post("/", createUser);
-router.put("/:id", authJWT, updateUser);
-router.get("/login", loginUser);
-router.get("/re-login/:id", authJWT, reLogin);
-router.delete("/:id", authJWT, deleteUser );
+router.route("/").get(authJWT, getAllUsers).post(createUser);
+router.route("/:id").put(authJWT, updateUser).delete(authJWT, deleteUser);
+router.route("/change-pass").put(authJWT, updatePassword);
+router.route("/login").get(loginUser);
+router.route("/re-login/:id").get(authJWT, reLogin);
 
 module.exports = router;

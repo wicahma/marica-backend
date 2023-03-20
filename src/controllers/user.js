@@ -18,16 +18,15 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
     const users = await user.find();
     res.status(200).json(users);
   } catch (err) {
-    res.status(500);
+    if (!res.status) res.status(500);
     throw new Error(err);
   }
 });
 
 exports.loginUser = asyncHandler(async (req, res) => {
   const { identifier, password } = req.query;
-  console.log(identifier);
-  console.log(password);
-  if (identifier === undefined || password === undefined) {
+  if (!identifier || !password) {
+    console.log(req.query);
     res.status(401);
     throw new Error("No parameter included!, hint: identifier or password");
   }
@@ -36,11 +35,10 @@ exports.loginUser = asyncHandler(async (req, res) => {
     const userExist = await user.findOne({
       $or: [{ "essentials.username": identifier }, { email: identifier }],
     });
-
-    if (
-      userExist &&
-      (await bcrypt.compare(password, userExist.essentials.password))
-    ) {
+    if (!userExist) {
+      res.status(400);
+      throw new Error("Invalid User Credentials! hint: wrong username/email");
+    } else if (bcrypt.compare(password, userExist.essentials.password)) {
       !userExist.validated
         ? res.status(401).json({
             message:
@@ -53,10 +51,10 @@ exports.loginUser = asyncHandler(async (req, res) => {
           });
     } else {
       res.status(400);
-      throw new Error("Invalid User Credentials");
+      throw new Error("Invalid User Credentials! hint: wrong password");
     }
   } catch (err) {
-    res.status(500);
+    if (!res.status) res.status(500);
     throw new Error(err);
   }
 });
@@ -65,7 +63,6 @@ exports.createUser = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword =
     req.body.password && (await bcrypt.hash(req.body.password, salt));
-  // const expAt = Date.now() + 30 * 60 * 1000;
 
   const admin = {
     username: req.body.username,
@@ -114,8 +111,7 @@ exports.createUser = asyncHandler(async (req, res) => {
       `http://localhost:4000/user/${validationCode}/validation`
     );
   } catch (err) {
-    res.status(400);
-    console.log(err);
+    if (!res.status) res.status(500);
     throw new Error(err);
   }
 });
@@ -131,10 +127,10 @@ exports.reLogin = asyncHandler(async (req, res) => {
       });
     } else {
       res.status(400);
-      throw new Error("Invalid User Credentials");
+      throw new Error("Invalid User Credentials! please check your ID");
     }
   } catch (err) {
-    res.status(500);
+    if (!res.status) res.status(500);
     throw new Error(err);
   }
 });
@@ -142,6 +138,7 @@ exports.reLogin = asyncHandler(async (req, res) => {
 exports.updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const data = { ...req.body };
+  if (data.password)
   try {
     const userExist = await user.findByIdAndUpdate(id, data, {
       new: true,
@@ -151,10 +148,46 @@ exports.updateUser = asyncHandler(async (req, res) => {
       res.status(200).json(userExist);
     } else {
       res.status(400);
-      throw new Error("Invalid User Credentials");
+      throw new Error("Invalid User Credentials! please check your ID");
     }
   } catch (err) {
-    res.status(500);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+exports.updatePassword = asyncHandler(async (req, res) => {
+  const { id, newPass, oldPass } = req.body;
+  if (!id) {
+    res.status(402);
+    throw new Error("Invalid User Credentials! hint : ID");
+  } else if (!newPass && !oldPass) {
+    res.status(402);
+    throw new Error("Invalid User Credentials! hint : newPass or oldPass");
+  }
+
+  try {
+    const isUser = await user.findById(id);
+    if (!isUser) {
+      res.status(400);
+      throw new Error("Invalid User Credentials! hint : ID");
+    } else if (bcrypt.compare(oldPass, isUser.essentials.password)) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPass, salt);
+      const updatedUser = await user.findByIdAndUpdate(
+        id,
+        {
+          "essentials.password": hashedPassword,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      res.status(200).json(updatedUser);
+    }
+  } catch (err) {
+    if (!res.status) res.status(500);
     throw new Error(err);
   }
 });
@@ -170,7 +203,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
       throw new Error("No User found in database!");
     }
   } catch (err) {
-    res.status(500);
+    if (!res.status) res.status(500);
     throw new Error(err);
   }
 });
