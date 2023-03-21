@@ -1,39 +1,50 @@
 const mongoose = require("mongoose");
 
-const anak = new mongoose.Schema({
-  nama: {
-    type: String,
-    required: [true, "Please add Your full name"],
-    maxlength: [50, "Name cannot be more than 50 characters"],
-  },
-  lahir: {
-    type: Date,
-    required: false,
-  },
-  imageID: {
-    type: String,
-    required: [true, "Please add your imageID"],
-    default: "profile.png",
-  },
-  poin: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-  character: {
-    gender: {
-      type: Boolean,
-      required: true,
-      default: false, // false cowo | true cewe
+const anak = new mongoose.Schema(
+  {
+    idAnak: {
+      type: String,
+      required: [true, "Please add your child's ID"],
+      unique: true,
     },
-    baju: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
-    celana: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
-    aksesorisTangan: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
-    aksesorisKepala: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
-    aksesorisMuka: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+    nama: {
+      type: String,
+      required: [true, "Please add Your full name"],
+      maxlength: [50, "Name cannot be more than 50 characters"],
+    },
+    lahir: {
+      type: Date,
+      required: false,
+    },
+    imageID: {
+      type: String,
+      required: [true, "Please add your imageID"],
+      default: "profile.png",
+    },
+    poin: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    character: {
+      gender: {
+        type: Boolean,
+        required: true,
+        default: false, // false cowo | true cewe
+      },
+      baju: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+      celana: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+      aksesorisTangan: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+      aksesorisKepala: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+      aksesorisMuka: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+    },
+    listCourse: [{ type: mongoose.Schema.Types.ObjectId, ref: "course" }],
   },
-  listCourse: [{ type: mongoose.Schema.Types.ObjectId, ref: "course" }],
-});
+  {
+    timestamps: true,
+    _id: false,
+  }
+);
 
 const userSchema = mongoose.Schema(
   {
@@ -112,7 +123,7 @@ const orangtua = new mongoose.Schema(
       required: false,
       maxlength: [100, "Address cannot be more than 100 characters"],
     },
-    dataAnak: [{ type: mongoose.Schema.Types.Mixed, ref: "anak" }],
+    dataAnak: [anak],
     dataBilling: [{ type: mongoose.Schema.Types.Mixed, ref: "payment" }],
     kidsAnalytics: [{ type: mongoose.Schema.Types.Mixed, ref: "analytics" }],
   },

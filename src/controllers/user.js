@@ -1,10 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const { user, anak } = require("../models/user");
 
+const ObjectId = require("mongodb").ObjectId;
 const { generateToken, generateValidation } = require("../middlewares/auth");
 const bcrypt = require("bcryptjs");
 const { sendEmail } = require("../configs/email");
-const { findByIdAndUpdate } = require("../models/series");
 
 exports.getAllUsers = asyncHandler(async (req, res) => {
   if (!req.query.id) {
@@ -34,11 +34,9 @@ exports.loginUser = asyncHandler(async (req, res) => {
   }
 
   try {
-    const userExist = await user
-      .findOne({
-        $or: [{ "essentials.username": identifier }, { email: identifier }],
-      })
-      .populate({ path: "essentials.dataAnak", model: "anak" });
+    const userExist = await user.findOne({
+      $or: [{ "essentials.username": identifier }, { email: identifier }],
+    });
     if (!userExist) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint: wrong username/email");
@@ -253,13 +251,26 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
     res.status(401);
     throw new Error("No parameter included!");
   }
-  
 
-
+  const dataAnak = {
+    $set: {
+      "essentials.dataAnak.$.nama": req.body.nama,
+      "essentials.dataAnak.$.lahir": req.body.lahir,
+      "essentials.dataAnak.$.imageID": req.body.imageID,
+      "essentials.dataAnak.$.poin": req.body.poin,
+    },
+  };
   try {
     const familyExist = await user.findById(id);
     if (familyExist && familyExist.userType === "orangtua") {
-      user.findByIdAndUpdate(id, { ...req.body, $push: {} });
+      const updatedUser = await user.updateOne(
+        {
+          "essentials.username": familyExist.essentials.username,
+          "essentials.dataAnak.username": req.body.usernameAnak,
+        },
+        { ...dataAnak }
+      );
+      res.status(201).json(updatedUser);
     }
   } catch (err) {
     console.log(err);
