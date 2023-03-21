@@ -26,31 +26,13 @@ const anak = new mongoose.Schema({
       required: true,
       default: false, // false cowo | true cewe
     },
-    baju: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
-    celana: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
-    aksesorisTangan: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
-    aksesorisKepala: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
-    aksesorisMuka: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
+    baju: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+    celana: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+    aksesorisTangan: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+    aksesorisKepala: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
+    aksesorisMuka: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
   },
-  listCourse: {
-    type: [mongoose.Schema.Types.ObjectId],
-    required: false,
-  },
+  listCourse: [{ type: mongoose.Schema.Types.ObjectId, ref: "course" }],
 });
 
 const userSchema = mongoose.Schema(
@@ -130,15 +112,9 @@ const orangtua = new mongoose.Schema(
       required: false,
       maxlength: [100, "Address cannot be more than 100 characters"],
     },
-    dataAnak: [{ type: mongoose.Schema.Types.ObjectId, ref: "anak" }],
-    dataBilling: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
-    kidsAnalytics: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
+    dataAnak: [{ type: mongoose.Schema.Types.Mixed, ref: "anak" }],
+    dataBilling: [{ type: mongoose.Schema.Types.Mixed, ref: "payment" }],
+    kidsAnalytics: [{ type: mongoose.Schema.Types.Mixed, ref: "analytics" }],
   },
   {
     _id: false,

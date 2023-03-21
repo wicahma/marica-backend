@@ -4,6 +4,7 @@ const { user, anak } = require("../models/user");
 const { generateToken, generateValidation } = require("../middlewares/auth");
 const bcrypt = require("bcryptjs");
 const { sendEmail } = require("../configs/email");
+const { findByIdAndUpdate } = require("../models/series");
 
 exports.getAllUsers = asyncHandler(async (req, res) => {
   if (!req.query.id) {
@@ -25,7 +26,7 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
 });
 
 exports.loginUser = asyncHandler(async (req, res) => {
-  const { identifier, password } = req.query;
+  const { identifier, password } = req.body;
   if (!identifier || !password) {
     console.log(req.query);
     res.status(401);
@@ -227,11 +228,12 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
   try {
     const familyExist = await user.findById(req.params.id);
     if (familyExist && familyExist.userType === "orangtua") {
-      await newAnak.save();
       await user.findByIdAndUpdate(req.params.id, {
-        $push: { "essentials.dataAnak": newAnak._id },
+        $push: { "essentials.dataAnak": newAnak },
       });
-      return res.status(200).json({ message: "Data anak created!", data: newAnak });
+      return res
+        .status(200)
+        .json({ message: "Data anak created!", data: newAnak });
     }
 
     res.status(400);
@@ -246,5 +248,22 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
 });
 
 exports.updateUserAnak = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!req.body) {
+    res.status(401);
+    throw new Error("No parameter included!");
+  }
   
-})
+
+
+  try {
+    const familyExist = await user.findById(id);
+    if (familyExist && familyExist.userType === "orangtua") {
+      user.findByIdAndUpdate(id, { ...req.body, $push: {} });
+    }
+  } catch (err) {
+    console.log(err);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
