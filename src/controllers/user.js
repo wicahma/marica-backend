@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
-const user = require("../models/user");
+const { user, anak } = require("../models/user");
+
 const { generateToken, generateValidation } = require("../middlewares/auth");
 const bcrypt = require("bcryptjs");
 const { sendEmail } = require("../configs/email");
@@ -32,9 +33,11 @@ exports.loginUser = asyncHandler(async (req, res) => {
   }
 
   try {
-    const userExist = await user.findOne({
-      $or: [{ "essentials.username": identifier }, { email: identifier }],
-    });
+    const userExist = await user
+      .findOne({
+        $or: [{ "essentials.username": identifier }, { email: identifier }],
+      })
+      .populate({ path: "essentials.dataAnak", model: "anak" });
     if (!userExist) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint: wrong username/email");
@@ -59,58 +62,53 @@ exports.loginUser = asyncHandler(async (req, res) => {
   }
 });
 
-exports.createUser = asyncHandler(async (req, res) => {
+exports.createUserOrangtua = asyncHandler(async (req, res) => {
+  if (!req.body) {
+    res.status(401);
+    throw new Error("No parameter included!");
+  } else if (req.body.userType === "admin") {
+    res.status(401);
+    throw new Error(
+      "Creating that user Type not allowed in here! hint : no hint"
+    );
+  }
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword =
     req.body.password && (await bcrypt.hash(req.body.password, salt));
-
-  const admin = {
-    username: req.body.username,
-    password: hashedPassword,
-  };
-
-  const orangtua = {
-    username: req.body.username,
-    password: hashedPassword,
-    address: req.body.address,
-  };
-
-  const anak = {
-    poin: 0,
-  };
 
   const newUser = new user({
     nama: req.body.nama,
     lahir: req.body.lahir,
     email: req.body.email,
     userType: req.body.userType,
-    essentials:
-      req.body.userType === "admin"
-        ? admin
-        : req.body.userType === "orangtua"
-        ? orangtua
-        : anak,
-    validated: req.body.userType !== "anak" ? false : true,
+    essentials: {
+      username: req.body.username,
+      password: hashedPassword,
+      address: req.body.address,
+    },
+    validated: false,
   });
 
   try {
     const createdUser = await newUser.save();
-    console.log(createdUser);
-    // const newToken = generateToken(createdUser._id);
+
     const validationCode = generateValidation(
       createdUser._id,
       createdUser.email
     );
+    sendEmail(
+      createdUser.email,
+      `http://localhost:4000/user/${validationCode}/validation`
+    );
+
     res.status(201).json({
       id: createdUser._doc._id,
       message:
         "User Created, Please check your email for the verification link!",
     });
-    sendEmail(
-      createdUser._doc.email,
-      `http://localhost:4000/user/${validationCode}/validation`
-    );
   } catch (err) {
+    console.log(err);
     if (!res.status) res.status(500);
     throw new Error(err);
   }
@@ -138,7 +136,13 @@ exports.reLogin = asyncHandler(async (req, res) => {
 exports.updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const data = { ...req.body };
-  if (data.password)
+  if (data.password || data["essentials.password"]) {
+    res.status(401);
+    throw new Error(
+      "Password cannot be updated here! hint: use Update Password Routing"
+    );
+  }
+
   try {
     const userExist = await user.findByIdAndUpdate(id, data, {
       new: true,
@@ -207,3 +211,40 @@ exports.deleteUser = asyncHandler(async (req, res) => {
     throw new Error(err);
   }
 });
+
+exports.createUserAnak = asyncHandler(async (req, res) => {
+  if (!req.body) {
+    res.status(401);
+    throw new Error("No parameter included!");
+  }
+
+  const newAnak = new anak({
+    nama: req.body.nama,
+    lahir: req.body.lahir,
+    poin: 0,
+  });
+
+  try {
+    const familyExist = await user.findById(req.params.id);
+    if (familyExist && familyExist.userType === "orangtua") {
+      await newAnak.save();
+      await user.findByIdAndUpdate(req.params.id, {
+        $push: { "essentials.dataAnak": newAnak._id },
+      });
+      return res.status(200).json({ message: "Data anak created!", data: newAnak });
+    }
+
+    res.status(400);
+    throw new Error(
+      "Invalid User Credentials! hint: No user found/user not Orangtua!"
+    );
+  } catch (err) {
+    console.log(err);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+exports.updateUserAnak = asyncHandler(async (req, res) => {
+  
+})

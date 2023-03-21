@@ -1,5 +1,58 @@
 const mongoose = require("mongoose");
 
+const anak = new mongoose.Schema({
+  nama: {
+    type: String,
+    required: [true, "Please add Your full name"],
+    maxlength: [50, "Name cannot be more than 50 characters"],
+  },
+  lahir: {
+    type: Date,
+    required: false,
+  },
+  imageID: {
+    type: String,
+    required: [true, "Please add your imageID"],
+    default: "profile.png",
+  },
+  poin: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  character: {
+    gender: {
+      type: Boolean,
+      required: true,
+      default: false, // false cowo | true cewe
+    },
+    baju: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+    celana: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+    aksesorisTangan: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+    aksesorisKepala: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+    aksesorisMuka: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: false,
+    },
+  },
+  listCourse: {
+    type: [mongoose.Schema.Types.ObjectId],
+    required: false,
+  },
+});
+
 const userSchema = mongoose.Schema(
   {
     nama: {
@@ -11,17 +64,17 @@ const userSchema = mongoose.Schema(
       type: Date,
       required: false,
     },
+    userType: {
+      type: String,
+      enum: ["admin", "orangtua"],
+      required: [true, "Please add your type"],
+      immutable: [true, "User type cannot be changed"],
+    },
     email: {
       type: String,
       required: [true, "Please add your email"],
       maxlength: [30, "Email cannot be more than 30 characters"],
       unique: true,
-    },
-    userType: {
-      type: String,
-      enum: ["admin", "orangtua", "anak"],
-      required: [true, "Please add your type"],
-      immutable: [true, "User type cannot be changed"],
     },
     imageID: {
       type: String,
@@ -77,59 +130,12 @@ const orangtua = new mongoose.Schema(
       required: false,
       maxlength: [100, "Address cannot be more than 100 characters"],
     },
-    dataAnak: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
+    dataAnak: [{ type: mongoose.Schema.Types.ObjectId, ref: "anak" }],
     dataBilling: {
       type: [mongoose.Schema.Types.ObjectId],
       required: false,
     },
     kidsAnalytics: {
-      type: [mongoose.Schema.Types.ObjectId],
-      required: false,
-    },
-  },
-  {
-    _id: false,
-  }
-);
-
-const anak = new mongoose.Schema(
-  {
-    poin: {
-      type: Number,
-      required: true,
-      default: 0,
-    },
-    character: {
-      gender: {
-        type: Boolean,
-        required: true,
-        default: false, // false cowo | true cewe
-      },
-      baju: {
-        type: [mongoose.Schema.Types.ObjectId],
-        required: false,
-      },
-      celana: {
-        type: [mongoose.Schema.Types.ObjectId],
-        required: false,
-      },
-      aksesorisTangan: {
-        type: [mongoose.Schema.Types.ObjectId],
-        required: false,
-      },
-      aksesorisKepala: {
-        type: [mongoose.Schema.Types.ObjectId],
-        required: false,
-      },
-      aksesorisMuka: {
-        type: [mongoose.Schema.Types.ObjectId],
-        required: false,
-      },
-    },
-    listCourse: {
       type: [mongoose.Schema.Types.ObjectId],
       required: false,
     },
@@ -158,4 +164,7 @@ userSchema.path("userType").set((v) => {
   return v;
 });
 
-module.exports = mongoose.model("user", userSchema);
+const model = mongoose.model;
+
+exports.user = model("user", userSchema);
+exports.anak = model("anak", anak);

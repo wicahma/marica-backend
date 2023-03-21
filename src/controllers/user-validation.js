@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
-const user = require("../models/user");
+const { user } = require("../models/user");
 const { generateValidation } = require("../middlewares/auth");
 const { sendEmail } = require("../configs/email");
 
@@ -31,7 +31,9 @@ exports.renewValidation = asyncHandler(async (req, res) => {
     throw new Error("No parameter included!, hint: ID");
   }
   try {
-    const userExist = await user.findOne({ email: req.params.email });
+    const userExist = await user.findOne({
+      email: req.params.email,
+    });
     if (!userExist) {
       res.status(401);
       throw new Error("User not found!");
