@@ -9,9 +9,7 @@ const {
   updateSeries,
 } = require("../controllers/series");
 
-router.get("/", getAllSeries);
+router.route("/").get(getAllSeries).post(createSeries).put(updateSeries);
 router.get("/one-series", getSeries);
-router.post("/", createSeries);
-router.put("/", updateSeries);
 
 module.exports = router;

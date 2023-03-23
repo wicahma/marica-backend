@@ -1,6 +1,13 @@
 const asyncHandler = require("express-async-handler");
 const series = require("../models/series");
 
+// ANCHOR Get All Series
+/*  
+@Route /user
+* Method : GET
+* Access : Orangtua & Admin & Anak
+*/
+
 exports.getAllSeries = asyncHandler(async (req, res) => {
   try {
     const allSeries = await series.find().select({ _id: 1, __v: 0 });
@@ -11,10 +18,17 @@ exports.getAllSeries = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Get One Series
+/*  
+@Route /user/one-series
+* Method : GET
+* Access : Orangtua & Admin & Anak
+*/
+
 exports.getSeries = asyncHandler(async (req, res) => {
   const { id } = req.params;
   try {
-    const seriesExist = await series.findById(id).project({ _id: 0, __v: 0 });
+    const seriesExist = await series.findById(id).project({ __v: 0 });
     if (seriesExist) {
       res.status(200).json(seriesExist);
     } else {
@@ -26,6 +40,13 @@ exports.getSeries = asyncHandler(async (req, res) => {
     throw new Error(err);
   }
 });
+
+// ANCHOR Create Series
+/*  
+@Route /user
+* Method : POST
+* Access : Admin
+*/
 
 exports.createSeries = asyncHandler(async (req, res) => {
   const data = { ...req.body };
