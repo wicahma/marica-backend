@@ -49,15 +49,18 @@ exports.getSeries = asyncHandler(async (req, res) => {
 */
 
 exports.createSeries = asyncHandler(async (req, res) => {
-  const data = { ...req.body };
+  const { judul, deskripsi, idVideo } = { ...req.body };
+
+  const newSeries = new series({
+    judul: judul,
+    deskripsi: deskripsi,
+    dataVideo: idVideo,
+  });
+  
   try {
-    const seriesExist = await series.create(data);
+    const seriesExist = await newSeries.save();
     if (seriesExist) {
       res.status(200).json(seriesExist);
-    } else {
-      console.log.log(seriesExist);
-      res.status(400);
-      throw new Error("Invalid Series Credentials");
     }
   } catch (err) {
     console.log(err);

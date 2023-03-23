@@ -214,15 +214,25 @@ exports.updateUser = asyncHandler(async (req, res) => {
     username: req.body.username,
     imageID: req.body.imageID,
     lahir: req.body.lahir,
+    "essentials.username": req.body.username,
   };
 
   try {
+    const isTaken = await user.findOne({
+      "essentials.username": req.body.username,
+    });
+    if (isTaken && isTaken._id != id) {
+      res.status(400);
+      throw new Error("Username already taken!");
+    }
+
     const userExist = await user.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     });
+
     if (userExist) {
-      res.status(200).json(userExist);
+      res.status(200).json({ message: "User Updated!" });
     } else {
       res.status(400);
       throw new Error("Invalid User Credentials! please check your ID");
@@ -327,6 +337,8 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 
 exports.createUserAnak = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const users = req;
+  console.log(users);
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
     res.status(400);
@@ -337,7 +349,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
     };
   }
 
-  const newAnak = new anak({
+  const newAnak = {
     nama: req.body.nama,
     lahir: req.body.lahir,
     username: req.body.username,
@@ -345,7 +357,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
     character: {
       gender: req.body.gender || "male",
     },
-  });
+  };
 
   try {
     const familyExist = await user.findById(id);
@@ -421,12 +433,10 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
         { ...dataAnak }
       );
       if (updatedUser.modifiedCount > 0) {
-        return res
-          .status(200)
-          .json({
-            message: "Data anak updated!",
-            row_updated: updatedUser.modifiedCount,
-          });
+        return res.status(200).json({
+          message: "Data anak updated!",
+          row_updated: updatedUser.modifiedCount,
+        });
       }
     }
 

@@ -188,4 +188,4 @@ userSchema.path("userType").set((v) => {
 const model = mongoose.model;
 
 exports.user = model("user", userSchema);
-exports.anak = model("anak", anak);
+// exports.anak = model("anak", anak);
