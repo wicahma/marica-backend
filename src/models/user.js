@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
 
+// * Child User Schema 
+// ! This Schema is not a model, it is a subdocument of the main user model
+
 const anak = new mongoose.Schema(
   {
-    idAnak: {
+    username: {
       type: String,
-      required: [true, "Please add your child's ID"],
+      required: [true, "Please add Your username"],
+      maxlength: [20, "Username cannot be more than 50 characters"],
       unique: true,
     },
     nama: {
@@ -28,9 +32,10 @@ const anak = new mongoose.Schema(
     },
     character: {
       gender: {
-        type: Boolean,
+        type: String,
+        enum: ["male", "female"],
         required: true,
-        default: false, // false cowo | true cewe
+        default: "male", 
       },
       baju: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
       celana: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
@@ -45,6 +50,8 @@ const anak = new mongoose.Schema(
     _id: false,
   }
 );
+
+// * Main User Schema
 
 const userSchema = mongoose.Schema(
   {
@@ -88,6 +95,8 @@ const userSchema = mongoose.Schema(
   }
 );
 
+// * Admin Schema
+
 const admin = new mongoose.Schema(
   {
     username: {
@@ -105,6 +114,8 @@ const admin = new mongoose.Schema(
     _id: false,
   }
 );
+
+// * Orangtua Schema
 
 const orangtua = new mongoose.Schema(
   {
@@ -132,6 +143,8 @@ const orangtua = new mongoose.Schema(
   }
 );
 
+// * Usertype setter
+
 userSchema.path("userType").set((v) => {
   console.log({ v });
   const enumValues = userSchema.paths.userType.enumValues;
@@ -141,9 +154,6 @@ userSchema.path("userType").set((v) => {
       break;
     case enumValues[1]:
       userSchema.path("essentials", orangtua);
-      break;
-    case enumValues[2]:
-      userSchema.path("essentials", anak);
       break;
     default:
       throw Error("Invalid userType");

@@ -6,13 +6,23 @@ const { generateToken, generateValidation } = require("../middlewares/auth");
 const bcrypt = require("bcryptjs");
 const { sendEmail } = require("../configs/email");
 
+// * Main User Controller
+
+// ANCHOR Get All Users
+/*  
+@Route /user
+* Method : GET
+* Access : Admin
+* Query : ID Admin (id)
+*/
+
 exports.getAllUsers = asyncHandler(async (req, res) => {
   if (!req.query.id) {
     res.status(401);
     throw new Error("No parameter included!, hint: ID");
   }
   try {
-    const isAdmin = await user.findById(req.params.id);
+    const isAdmin = await user.findById(req.query.id);
     if (!isAdmin || isAdmin.userType !== "admin") {
       res.status(401);
       throw new Error("Not authorized as an admin!");
@@ -25,6 +35,14 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Login User
+/*  
+@Route /user/login
+* Method : POST
+* Access : Admin, Orangtua
+* Body   : identifier (email or username), password
+*/
+
 exports.loginUser = asyncHandler(async (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
@@ -34,9 +52,17 @@ exports.loginUser = asyncHandler(async (req, res) => {
   }
 
   try {
-    const userExist = await user.findOne({
-      $or: [{ "essentials.username": identifier }, { email: identifier }],
-    });
+    const userExist = await user
+      .findOne({
+        $or: [{ "essentials.username": identifier }, { email: identifier }],
+      })
+      .select({
+        createdAt: 0,
+        updatedAt: 0,
+        __v: 0,
+        "essentials.password": 0,
+        "essentials.dataAnak": 0,
+      });
     if (!userExist) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint: wrong username/email");
@@ -61,6 +87,14 @@ exports.loginUser = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Create User Orang Tua
+/*  
+@Route /user
+* Method : POST
+* Access : Orangtua
+* Body   : nama, ?lahir, email, username, password, ?address
+*/
+
 exports.createUserOrangtua = asyncHandler(async (req, res) => {
   if (!req.body) {
     res.status(401);
@@ -80,7 +114,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
     nama: req.body.nama,
     lahir: req.body.lahir,
     email: req.body.email,
-    userType: req.body.userType,
+    userType: "orangtua",
     essentials: {
       username: req.body.username,
       password: hashedPassword,
@@ -113,8 +147,15 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Re Login
+/*  
+@Route /user/re-login/:id
+* Method : GET
+* Access : Orangtua & Admin
+* Params : ID user
+*/
+
 exports.reLogin = asyncHandler(async (req, res) => {
-  console.log(req.body);
   const { id } = req.params;
   try {
     const userExist = await user.findById(id);
@@ -131,6 +172,15 @@ exports.reLogin = asyncHandler(async (req, res) => {
     throw new Error(err);
   }
 });
+
+// ANCHOR Update User
+/*  
+@Route /user/:id
+* Method : PUT
+* Access : Orangtua & Admin
+* Params : ID user
+* Body   : All User Data
+*/
 
 exports.updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -158,6 +208,14 @@ exports.updateUser = asyncHandler(async (req, res) => {
     throw new Error(err);
   }
 });
+
+// ANCHOR Update Password
+/*  
+@Route /user
+* Method : PUT
+* Access : Orangtua & Admin
+* Body   : id, newPass, oldPass
+*/
 
 exports.updatePassword = asyncHandler(async (req, res) => {
   const { id, newPass, oldPass } = req.body;
@@ -195,8 +253,16 @@ exports.updatePassword = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Delete User
+/*  
+@Route /user
+* Method : DELETE
+* Access : Orangtua
+* Body   : id
+*/
+
 exports.deleteUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.body;
   try {
     const userExist = await user.findByIdAndDelete(id);
     if (userExist) {
@@ -211,22 +277,44 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Create One User Anak
+/*  
+@Route /user/:id/anak
+* Method : POST
+* Access : Orangtua
+* Params : ID Orangtua
+* Body   : nama, username, ?lahir, ?gender
+*/
+
 exports.createUserAnak = asyncHandler(async (req, res) => {
-  if (!req.body) {
+  const { id } = req.params;
+  if (!id) {
     res.status(401);
-    throw new Error("No parameter included!");
+    throw new Error("No ID included!");
   }
 
   const newAnak = new anak({
     nama: req.body.nama,
     lahir: req.body.lahir,
+    username: req.body.username,
     poin: 0,
+    character: {
+      gender: req.body.gender || "male",
+    },
   });
 
   try {
-    const familyExist = await user.findById(req.params.id);
-    if (familyExist && familyExist.userType === "orangtua") {
-      await user.findByIdAndUpdate(req.params.id, {
+    const familyExist = await user.findById(id);
+    const anakExist = familyExist.essentials.dataAnak.find(
+      (anak) => anak.username === req.body.username
+    );
+
+    if (anakExist) {
+      console.log(anakExist);
+      res.status(400);
+      throw new Error("Username for anak already exist!");
+    } else if (familyExist && familyExist.userType === "orangtua") {
+      await user.findByIdAndUpdate(id, {
         $push: { "essentials.dataAnak": newAnak },
       });
       return res
@@ -245,19 +333,30 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Update One User Anak
+/*  
+@Route /user/:id/anak
+* Method : PUT
+* Access : Orangtua
+* Params : ID Orangtua
+* Body   : ?lahir, ?imageID, ?username
+*/
+
 exports.updateUserAnak = asyncHandler(async (req, res) => {
   const { id } = req.params;
   if (!req.body) {
     res.status(401);
     throw new Error("No parameter included!");
+  } else if (!id) {
+    res.status(401);
+    throw new Error("No ID included!");
   }
 
   const dataAnak = {
     $set: {
-      "essentials.dataAnak.$.nama": req.body.nama,
+      "essentials.dataAnak.$.username": req.body.newUsername,
       "essentials.dataAnak.$.lahir": req.body.lahir,
       "essentials.dataAnak.$.imageID": req.body.imageID,
-      "essentials.dataAnak.$.poin": req.body.poin,
     },
   };
   try {
@@ -266,11 +365,54 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
       const updatedUser = await user.updateOne(
         {
           "essentials.username": familyExist.essentials.username,
-          "essentials.dataAnak.username": req.body.usernameAnak,
+          "essentials.dataAnak.username": req.body.username,
         },
         { ...dataAnak }
       );
       res.status(201).json(updatedUser);
+    }
+
+    res.status(400);
+    throw new Error(
+      "Invalid User Credentials! hint: No user found/user not Orangtua!"
+    );
+  } catch (err) {
+    console.log(err);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Get All Anak From one User
+/*  
+@Route /user/:id/anak
+* Method : GET
+* Access : Orangtua
+* Params : ID Orangtua
+*/
+
+exports.getAnak = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { username } = req.query;
+  if (!id) {
+    res.status(401);
+    throw new Error("No ID included!");
+  }
+
+  try {
+    const familyExist = await user.findById(id);
+    if (familyExist && familyExist.userType === "orangtua") {
+      if (!username) {
+        res.status(201).json(familyExist.essentials.dataAnak);
+      }
+      const anakExist = familyExist.essentials.dataAnak.find(
+        (anak) => anak.username === username
+      );
+      if (anakExist) {
+        return res.status(201).json(anakExist);
+      }
+      res.status(400);
+      throw new Error("No Anak found in database!");
     }
   } catch (err) {
     console.log(err);
@@ -278,3 +420,14 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
     throw new Error(err);
   }
 });
+
+// ANCHOR Delete Anak From one User
+/*  
+@Route /user/:id/anak
+* Method : DELETE
+* Access : Orangtua
+* Params : ID Orangtua
+* Body   : username anak
+*/
+
+exports.deleteAnak = asyncHandler(async (req, res) => {});

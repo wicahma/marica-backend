@@ -10,14 +10,23 @@ const {
   createUserOrangtua,
   createUserAnak,
   updateUserAnak,
+  getAnak,
 } = require("../controllers/user");
 const { authJWT } = require("../middlewares/auth");
 
-router.route("/").get(authJWT, getAllUsers).post(createUserOrangtua);
-router.route("/:id").put(authJWT, updateUser).delete(authJWT, deleteUser);
-router.route("/change-pass").put(authJWT, updatePassword);
+router
+  .route("/")
+  .get(authJWT, getAllUsers)
+  .post(createUserOrangtua)
+  .put(authJWT, updatePassword)
+  .delete(authJWT, deleteUser);
+router.route("/:id").put(authJWT, updateUser);
 router.route("/login").post(loginUser);
-router.route("/:id/anak").post(createUserAnak).put(updateUserAnak);
 router.route("/re-login/:id").get(authJWT, reLogin);
+router
+  .route("/:id/anak")
+  .post(createUserAnak)
+  .put(updateUserAnak)
+  .get(getAnak);
 
 module.exports = router;
