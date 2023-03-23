@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const { user } = require("../models/user");
 const { generateValidation } = require("../middlewares/auth");
 const { sendEmail } = require("../configs/email");
+const { validationResult } = require("express-validator");
 
 exports.setValidation = asyncHandler(async (req, res) => {
   let validationCode;
@@ -26,16 +27,21 @@ exports.setValidation = asyncHandler(async (req, res) => {
 });
 
 exports.renewValidation = asyncHandler(async (req, res) => {
-  if (!req.params.email) {
-    res.status(401);
-    throw new Error("No parameter included!, hint: ID");
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors,
+    };
   }
+
   try {
     const userExist = await user.findOne({
       email: req.params.email,
     });
     if (!userExist) {
-      res.status(401);
+      res.status(400);
       throw new Error("User not found!");
     }
     const validationCode = generateValidation(userExist._id, userExist.email);
@@ -45,7 +51,7 @@ exports.renewValidation = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ message: emails });
   } catch (err) {
-    res.status(500);
+    if (!res.status) res.status(500);
     throw new Error(err);
   }
 });

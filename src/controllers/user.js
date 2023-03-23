@@ -5,6 +5,8 @@ const ObjectId = require("mongodb").ObjectId;
 const { generateToken, generateValidation } = require("../middlewares/auth");
 const bcrypt = require("bcryptjs");
 const { sendEmail } = require("../configs/email");
+const { generateFromEmail } = require("unique-username-generator");
+const { validationResult } = require("express-validator");
 
 // * Main User Controller
 
@@ -45,10 +47,14 @@ exports.getAllUsers = asyncHandler(async (req, res) => {
 
 exports.loginUser = asyncHandler(async (req, res) => {
   const { identifier, password } = req.body;
-  if (!identifier || !password) {
-    console.log(req.query);
-    res.status(401);
-    throw new Error("No parameter included!, hint: identifier or password");
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
   }
 
   try {
@@ -92,38 +98,36 @@ exports.loginUser = asyncHandler(async (req, res) => {
 @Route /user
 * Method : POST
 * Access : Orangtua
-* Body   : nama, ?lahir, email, username, password, ?address
+* Body   : email, password
 */
 
 exports.createUserOrangtua = asyncHandler(async (req, res) => {
-  if (!req.body) {
-    res.status(401);
-    throw new Error("No parameter included!");
-  } else if (req.body.userType === "admin") {
-    res.status(401);
-    throw new Error(
-      "Creating that user Type not allowed in here! hint : no hint"
-    );
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword =
-    req.body.password && (await bcrypt.hash(req.body.password, salt));
-
-  const newUser = new user({
-    nama: req.body.nama,
-    lahir: req.body.lahir,
-    email: req.body.email,
-    userType: "orangtua",
-    essentials: {
-      username: req.body.username,
-      password: hashedPassword,
-      address: req.body.address,
-    },
-    validated: false,
-  });
-
   try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword =
+      req.body.password && (await bcrypt.hash(req.body.password, salt));
+    const username = generateFromEmail(req.body.email, 2);
+
+    const newUser = new user({
+      email: req.body.email,
+      nama: username,
+      userType: "orangtua",
+      essentials: {
+        username: username,
+        password: hashedPassword,
+      },
+      validated: false,
+    });
     const createdUser = await newUser.save();
 
     const validationCode = generateValidation(
@@ -157,6 +161,16 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
 
 exports.reLogin = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
+  }
+
   try {
     const userExist = await user.findById(id);
     if (userExist) {
@@ -184,13 +198,23 @@ exports.reLogin = asyncHandler(async (req, res) => {
 
 exports.updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const data = { ...req.body };
-  if (data.password || data["essentials.password"]) {
-    res.status(401);
-    throw new Error(
-      "Password cannot be updated here! hint: use Update Password Routing"
-    );
+  // const data = { ...req.body };
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
   }
+
+  const data = {
+    nama: req.body.nama,
+    username: req.body.username,
+    imageID: req.body.imageID,
+    lahir: req.body.lahir,
+  };
 
   try {
     const userExist = await user.findByIdAndUpdate(id, data, {
@@ -218,13 +242,16 @@ exports.updateUser = asyncHandler(async (req, res) => {
 */
 
 exports.updatePassword = asyncHandler(async (req, res) => {
-  const { id, newPass, oldPass } = req.body;
-  if (!id) {
-    res.status(402);
-    throw new Error("Invalid User Credentials! hint : ID");
-  } else if (!newPass && !oldPass) {
-    res.status(402);
-    throw new Error("Invalid User Credentials! hint : newPass or oldPass");
+  const { newPass, oldPass } = req.body;
+  const { id } = req.params;
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
   }
 
   try {
@@ -232,10 +259,10 @@ exports.updatePassword = asyncHandler(async (req, res) => {
     if (!isUser) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint : ID");
-    } else if (bcrypt.compare(oldPass, isUser.essentials.password)) {
+    } else if (await bcrypt.compare(oldPass, isUser.essentials.password)) {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(newPass, salt);
-      const updatedUser = await user.findByIdAndUpdate(
+      await user.findByIdAndUpdate(
         id,
         {
           "essentials.password": hashedPassword,
@@ -245,8 +272,10 @@ exports.updatePassword = asyncHandler(async (req, res) => {
           runValidators: true,
         }
       );
-      res.status(200).json(updatedUser);
+      res.status(200).json({ message: "Password updated succesfully!" });
     }
+    res.status(400);
+    throw new Error("Invalid User Credentials! hint : Wrong Password");
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);
@@ -263,6 +292,16 @@ exports.updatePassword = asyncHandler(async (req, res) => {
 
 exports.deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.body;
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
+  }
+
   try {
     const userExist = await user.findByIdAndDelete(id);
     if (userExist) {
@@ -283,14 +322,19 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 * Method : POST
 * Access : Orangtua
 * Params : ID Orangtua
-* Body   : nama, username, ?lahir, ?gender
+* Body   : nama, username, ?lahir
 */
 
 exports.createUserAnak = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  if (!id) {
-    res.status(401);
-    throw new Error("No ID included!");
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
   }
 
   const newAnak = new anak({
@@ -339,7 +383,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
 * Method : PUT
 * Access : Orangtua
 * Params : ID Orangtua
-* Body   : ?lahir, ?imageID, ?username
+* Body   : ?lahir, ?imageID, username, ?newUsername
 */
 
 exports.updateUserAnak = asyncHandler(async (req, res) => {
@@ -361,7 +405,14 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
   };
   try {
     const familyExist = await user.findById(id);
-    if (familyExist && familyExist.userType === "orangtua") {
+    const anakExist = familyExist.essentials.dataAnak.find(
+      (anak) => anak.username === req.body.newUsername
+    );
+
+    if (anakExist) {
+      res.status(400);
+      throw new Error("Username for anak already exist!");
+    } else if (familyExist && familyExist.userType === "orangtua") {
       const updatedUser = await user.updateOne(
         {
           "essentials.username": familyExist.essentials.username,
@@ -369,7 +420,14 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
         },
         { ...dataAnak }
       );
-      res.status(201).json(updatedUser);
+      if (updatedUser.modifiedCount > 0) {
+        return res
+          .status(200)
+          .json({
+            message: "Data anak updated!",
+            row_updated: updatedUser.modifiedCount,
+          });
+      }
     }
 
     res.status(400);
@@ -383,9 +441,9 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
   }
 });
 
-// ANCHOR Get All Anak From one User
+// ANCHOR Get Anak From one User
 /*  
-@Route /user/:id/anak
+@Route /user/:id/anak?username=namaUsernameAnak
 * Method : GET
 * Access : Orangtua
 * Params : ID Orangtua
@@ -394,9 +452,14 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
 exports.getAnak = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { username } = req.query;
-  if (!id) {
-    res.status(401);
-    throw new Error("No ID included!");
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
   }
 
   try {
@@ -427,7 +490,47 @@ exports.getAnak = asyncHandler(async (req, res) => {
 * Method : DELETE
 * Access : Orangtua
 * Params : ID Orangtua
-* Body   : username anak
+* Query  : ?username anak
 */
 
-exports.deleteAnak = asyncHandler(async (req, res) => {});
+exports.deleteAnak = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { username } = req.query;
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
+  }
+
+  try {
+    const familyExist = await user.findById(id);
+    if (familyExist && familyExist.userType === "orangtua") {
+      const isUpdated = username
+        ? await user.updateOne(
+            { _id: id, "essentials.dataAnak.username": username },
+            { $pull: { "essentials.dataAnak": { username: username } } }
+          )
+        : await user.updateOne(
+            { _id: id, "essentials.dataAnak.username": username },
+            {
+              $set: { "essentials.dataAnak": [] },
+            }
+          );
+      if (isUpdated.modifiedCount) {
+        return res.status(201).json({ message: "Anak deleted!" });
+      }
+      res.status(400);
+      throw new Error("No Anak found in database!");
+    }
+    res.status(400);
+    throw new Error("Invalid User Credentials! hint: No user found!");
+  } catch (err) {
+    console.log(err);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});

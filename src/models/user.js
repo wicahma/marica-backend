@@ -1,6 +1,18 @@
 const mongoose = require("mongoose");
 
-// * Child User Schema 
+const optionalWithLength = (minLength, maxLength) => {
+  minLength = minLength || 0;
+  maxLength = maxLength || Infinity;
+  return {
+    validator: function (value) {
+      if (value === undefined) return true;
+      return value.length >= minLength && value.length <= maxLength;
+    },
+    message: `Optional field is shorter than the minimum allowed length ${minLength} or larger than the maximum allowed length ${maxLength}`,
+  };
+};
+
+// * Child User Schema
 // ! This Schema is not a model, it is a subdocument of the main user model
 
 const anak = new mongoose.Schema(
@@ -8,17 +20,23 @@ const anak = new mongoose.Schema(
     username: {
       type: String,
       required: [true, "Please add Your username"],
-      maxlength: [20, "Username cannot be more than 50 characters"],
+      validate: optionalWithLength(5, 50),
       unique: true,
     },
     nama: {
       type: String,
       required: [true, "Please add Your full name"],
-      maxlength: [50, "Name cannot be more than 50 characters"],
+      validate: optionalWithLength(2, 100),
     },
     lahir: {
       type: Date,
       required: false,
+      validate: (date) => {
+        return {
+          validator: date < new Date(),
+          message: "Date of birth must be in the past!",
+        };
+      },
     },
     imageID: {
       type: String,
@@ -35,7 +53,7 @@ const anak = new mongoose.Schema(
         type: String,
         enum: ["male", "female"],
         required: true,
-        default: "male", 
+        default: "male",
       },
       baju: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
       celana: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
@@ -58,11 +76,17 @@ const userSchema = mongoose.Schema(
     nama: {
       type: String,
       required: [true, "Please add Your full name"],
-      maxlength: [50, "Name cannot be more than 50 characters"],
+      maxlength: [40, "Name cannot be more than 40 characters"],
     },
     lahir: {
       type: Date,
       required: false,
+      validate: (date) => {
+        return {
+          validator: date < new Date(),
+          message: "Date of birth must be in the past!",
+        };
+      },
     },
     userType: {
       type: String,
@@ -72,8 +96,8 @@ const userSchema = mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "Please add your email"],
-      maxlength: [30, "Email cannot be more than 30 characters"],
+      required: [true, "Please add your email!"],
+      maxlength: [50, "Email cannot be more than 30 characters"],
       unique: true,
     },
     imageID: {
