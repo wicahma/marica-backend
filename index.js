@@ -13,6 +13,7 @@ const app = express();
 
 app.use(express.json());
 app.use(
+  mainRoute,
   cors({
     origin: "https://marica.vercel.app",
   })

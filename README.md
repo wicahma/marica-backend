@@ -116,18 +116,16 @@ _https://marica.com/api/v1/user/vdDhSiDxcAD8LuNawCiJoI8Y/anak?username=diama_
 
 ### Stack
 
-- JWT
-- Multer
-- Express
-- Express Session
-- Express validator
-- Express Async Handler
-- Username Generator
-- Google API
-- Passport
-- Bcrypt
-- Mongodb
-- Mongoose
+![Express Js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
+
+![Jwt](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
+
+- JWT - Multer
+- Express - Express Session
+- Express validator - Express Async Handler
+- Username Generator - Google API
+- Passport - Bcrypt
+- Mongodb - Mongoose
 - Nodemailer
 
 Main Route For API
@@ -150,7 +148,7 @@ Main Route For API
 - **Body** : None
 
 ```javascript
-Return
+Return;
 ```
 
 ### Series Routing
