@@ -13,7 +13,7 @@ const authJWT = asyncHandler(async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_CODE);
       req.user = await user.findById(decoded.id).select("-password");
     } catch (error) {
-      res.status(401);
+      res.status(401);  
       throw new Error(error);
     }
     return next();
