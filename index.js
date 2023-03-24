@@ -14,8 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    origin: "https://marica.vercel.app",
   })
 );
 app.use(express.urlencoded({ extended: false }));

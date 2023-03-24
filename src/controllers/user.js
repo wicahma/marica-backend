@@ -120,7 +120,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
 
     const newUser = new user({
       email: req.body.email,
-      nama: username,
+      nama: req.body.nama,
       userType: "orangtua",
       essentials: {
         username: username,

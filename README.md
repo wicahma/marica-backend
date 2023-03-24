@@ -64,7 +64,6 @@ axios
   .catch((err) => {
     console.log(err.response.data);
   });
-
 ```
 
 - Params, Bentuk data yang di send dengan lokasi Parameter URL
@@ -90,7 +89,6 @@ const newUser = {
   password: "marica123",
   // etc...
 };
-
 
 // Contoh bentuk pengiriman data dengan Axios
 axios
@@ -132,9 +130,28 @@ _https://marica.com/api/v1/user/vdDhSiDxcAD8LuNawCiJoI8Y/anak?username=diama_
 - Mongoose
 - Nodemailer
 
+Main Route For API
+
+- /api/v1 -> _we will name it **main** from now_
+
 ### User Routing
 
-( ! ) _Under Construction, Please comeback later_
+- /**main**/user -> _this is for user Routing_
+
+#### **- Get All User**
+
+- **Method** : GET
+- **URL** : /user
+- **Description** : Untuk mengambil semua user yang ada
+- **Access** : Admin Only
+- **Auth** : Yes
+- **Params** : None
+- **Query** : id
+- **Body** : None
+
+```javascript
+Return
+```
 
 ### Series Routing
 
@@ -155,4 +172,3 @@ _https://marica.com/api/v1/user/vdDhSiDxcAD8LuNawCiJoI8Y/anak?username=diama_
 ### Admin Routing
 
 ( ! ) _Under Construction, Please comeback later_
-
