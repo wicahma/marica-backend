@@ -117,6 +117,11 @@ router
   .get(authJWT, getAllUsers)
   .post(
     [
+      body("nama")
+        .exists()
+        .withMessage("Nama is required!")
+        .isLength({ min: 1, max: 50 })
+        .withMessage("Nama cannot more than 50!"),
       body("email")
         .exists()
         .withMessage("Email is required!")
@@ -128,8 +133,8 @@ router
         .exists()
         .withMessage("Password is required!")
         .isStrongPassword()
-        .withMessage("Your password is not strong enough!")
-        .isLength({ min: 5 })
+        .withMessage("Your password is not strong enough! *hint: use 8 characters with minimum 1 uppercase, 1 lowercase, 2 number, 1 symbol")
+        .isLength({ min: 8 })
         .withMessage("Please input a password of minimum 5 Characters!"),
     ],
     createUserOrangtua

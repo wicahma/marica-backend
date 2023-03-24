@@ -76,7 +76,7 @@ const userSchema = mongoose.Schema(
     nama: {
       type: String,
       required: [true, "Please add Your full name"],
-      maxlength: [40, "Name cannot be more than 40 characters"],
+      maxlength: [50, "Name cannot be more than 50 characters"],
     },
     lahir: {
       type: Date,
