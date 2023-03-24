@@ -72,7 +72,13 @@ exports.loginUser = asyncHandler(async (req, res) => {
     if (!userExist) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint: wrong username/email");
-    } else if (bcrypt.compare(password, userExist.essentials.password)) {
+    } else if (
+      bcrypt.compare(password, userExist.essentials.password, (err, result) => {
+        if (!err) return result;
+        res.status(500);
+        throw new Error(err);
+      })
+    ) {
       !userExist.validated
         ? res.status(401).json({
             message:
@@ -113,9 +119,13 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
   }
 
   try {
-    const salt = await bcrypt.genSalt(10);
     const hashedPassword =
-      req.body.password && (await bcrypt.hash(req.body.password, salt));
+      req.body.password &&
+      bcrypt.hash(req.body.password, 20, (err, result) => {
+        if (!err) return result;
+        res.status(500);
+        throw new Error(err);
+      });
     const username = generateFromEmail(req.body.email, 2);
 
     const newUser = new user({
@@ -269,9 +279,22 @@ exports.updatePassword = asyncHandler(async (req, res) => {
     if (!isUser) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint : ID");
-    } else if (await bcrypt.compare(oldPass, isUser.essentials.password)) {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPass, salt);
+    } else if (
+      await bcrypt.compare(
+        oldPass,
+        isUser.essentials.password,
+        (err, result) => {
+          if (!err) return result;
+          res.status(500);
+          throw new Error(err);
+        }
+      )
+    ) {
+      const hashedPassword = await bcrypt.hash(newPass, 20, (err, result) => {
+        if (!err) return result;
+        res.status(500);
+        throw new Error(err);
+      });
       await user.findByIdAndUpdate(
         id,
         {
