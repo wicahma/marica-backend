@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-
 const seriesSchema = mongoose.Schema(
   {
     judul: {
@@ -13,11 +12,18 @@ const seriesSchema = mongoose.Schema(
       required: [true, "Please add the description of the series!"],
       maxlength: [250, "Description cannot be more than 1000 characters!"],
     },
-    dataVideo: [{
-      type: mongoose.Schema.ObjectId,
-      ref: "video",
-      required: false,
-    }],
+    thumbnail: {
+      type: String,
+      required: [true, "Please add the display image of the series!"],
+      default: "image-default-series.png",
+    },
+    dataVideo: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "video",
+        required: false,
+      },
+    ],
   },
   {
     timestamps: true,

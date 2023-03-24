@@ -416,20 +416,29 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
   };
   try {
     const familyExist = await user.findById(id);
-    const anakExist = familyExist.essentials.dataAnak.find(
-      (anak) => anak.username === req.body.newUsername
-    );
 
-    if (anakExist) {
-      res.status(400);
-      throw new Error("Username for anak already exist!");
-    } else if (familyExist && familyExist.userType === "orangtua") {
+    console.log(familyExist);
+
+    if (familyExist && familyExist.userType === "orangtua") {
+      const isAnak = familyExist.essentials.dataAnak.find(
+        (anak) => anak.username === req.body.newUsername
+      );
+
+      if (isAnak) {
+        res.status(400);
+        throw new Error("Username for anak already exist!");
+      }
+
       const updatedUser = await user.updateOne(
         {
           "essentials.username": familyExist.essentials.username,
           "essentials.dataAnak.username": req.body.username,
         },
-        { ...dataAnak }
+        { ...dataAnak },
+        {
+          new: true,
+          arrayFilters: [{ "anak._id": req.body.id }],
+        }
       );
       if (updatedUser.modifiedCount > 0) {
         return res.status(200).json({
@@ -437,6 +446,8 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
           row_updated: updatedUser.modifiedCount,
         });
       }
+      res.status(400);
+      throw new Error("Data anak tidak ditemukan!");
     }
 
     res.status(400);

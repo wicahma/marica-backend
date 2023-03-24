@@ -65,7 +65,6 @@ const anak = new mongoose.Schema(
   },
   {
     timestamps: true,
-    _id: false,
   }
 );
 
