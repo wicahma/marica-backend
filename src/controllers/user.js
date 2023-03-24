@@ -83,6 +83,8 @@ exports.loginUser = asyncHandler(async (req, res) => {
             token: generateToken(user._id),
           });
     }
+    res.status(400);
+    throw new Error("Invalid User Credentials! hint: wrong password");
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);
