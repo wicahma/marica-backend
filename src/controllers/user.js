@@ -66,19 +66,12 @@ exports.loginUser = asyncHandler(async (req, res) => {
         createdAt: 0,
         updatedAt: 0,
         __v: 0,
-        "essentials.password": 0,
         "essentials.dataAnak": 0,
       });
     if (!userExist) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint: wrong username/email");
-    } else if (
-      bcrypt.compare(password, userExist.essentials.password, (err, result) => {
-        if (!err) return result;
-        res.status(500);
-        throw new Error(err);
-      })
-    ) {
+    } else if (await bcrypt.compare(password, userExist.essentials.password)) {
       !userExist.validated
         ? res.status(401).json({
             message:
@@ -89,9 +82,6 @@ exports.loginUser = asyncHandler(async (req, res) => {
             ...userExist._doc,
             token: generateToken(user._id),
           });
-    } else {
-      res.status(400);
-      throw new Error("Invalid User Credentials! hint: wrong password");
     }
   } catch (err) {
     if (!res.status) res.status(500);
@@ -119,14 +109,11 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
   }
 
   try {
-    const hashedPassword =
-      req.body.password &&
-      bcrypt.hash(req.body.password, 20, (err, result) => {
-        if (!err) return result;
-        res.status(500);
-        throw new Error(err);
-      });
+    const hashedPassword = await bcrypt.hash(req.body.password, 5);
+
     const username = generateFromEmail(req.body.email, 2);
+
+    console.log("hashed pass", hashedPassword);
 
     const newUser = new user({
       email: req.body.email,
@@ -155,7 +142,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
         "User Created, Please check your email for the verification link!",
     });
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     if (!res.status) res.status(500);
     throw new Error(err);
   }
@@ -276,25 +263,12 @@ exports.updatePassword = asyncHandler(async (req, res) => {
 
   try {
     const isUser = await user.findById(id);
+
     if (!isUser) {
       res.status(400);
       throw new Error("Invalid User Credentials! hint : ID");
-    } else if (
-      await bcrypt.compare(
-        oldPass,
-        isUser.essentials.password,
-        (err, result) => {
-          if (!err) return result;
-          res.status(500);
-          throw new Error(err);
-        }
-      )
-    ) {
-      const hashedPassword = await bcrypt.hash(newPass, 20, (err, result) => {
-        if (!err) return result;
-        res.status(500);
-        throw new Error(err);
-      });
+    } else if (await bcrypt.compare(oldPass, isUser.essentials.password)) {
+      const hashedPassword = await bcrypt.hash(newPass, 5);
       await user.findByIdAndUpdate(
         id,
         {
