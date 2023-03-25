@@ -19,12 +19,13 @@ const { validationResult } = require("express-validator");
 */
 
 exports.getAllUsers = asyncHandler(async (req, res) => {
-  if (!req.query.id) {
+  const { id } = req.query;
+  if (!id) {
     res.status(401);
     throw new Error("No parameter included!, hint: ID");
   }
   try {
-    const isAdmin = await user.findById(req.query.id);
+    const isAdmin = await user.findById(id);
     if (!isAdmin || isAdmin.userType !== "admin") {
       res.status(401);
       throw new Error("Not authorized as an admin!");

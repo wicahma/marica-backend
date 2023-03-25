@@ -11,15 +11,20 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please add the video thumbnail"],
   },
-  quizTimestamp: {
-    type: String,
-    required: [true, "Please add the timestamp for the quiz!"],
+  active: {
+    type: Boolean,
+    required: [true, "Please add the active status!"],
+    default: false,
   },
   miniQuiz: {
     tipe: {
       type: String,
       enum: quizType,
       required: false,
+    },
+    quizTimestamp: {
+      type: Number,
+      required: [true, "Please add the timestamp in epoch for the quiz!"],
     },
     quiz: {
       type: mongoose.Schema.Types.Mixed,

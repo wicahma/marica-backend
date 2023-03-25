@@ -3,16 +3,16 @@ const router = express.Router();
 
 const { authJWT } = require("../middlewares/auth");
 const {
-  getAllSeries,
   createSeries,
   getSeries,
   updateSeries,
+  deleteSeries,
 } = require("../controllers/series");
 const { body } = require("express-validator");
 
 router
   .route("/")
-  .get(getAllSeries)
+  .get(getSeries)
   .post(
     [
       body("judul")
@@ -27,8 +27,7 @@ router
         .withMessage("Deskripsi must be between 1 and 250 characters long!"),
     ],
     createSeries
-  )
-  .put(updateSeries);
-router.get("/one-series", getSeries);
+  );
+router.route("/:id").put(updateSeries).delete(deleteSeries);
 
 module.exports = router;

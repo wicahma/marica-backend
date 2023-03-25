@@ -1,26 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const series = require("../models/series");
+const video = require("../models/video");
 
-// ANCHOR Get All Series
+// ANCHOR Get Series & One series
 /*  
-@Route /series
-* Method : GET
-* Access : Orangtua & Admin & Anak
-*/
-
-exports.getAllSeries = asyncHandler(async (req, res) => {
-  try {
-    const allSeries = await series.find().select({ __v: 0 });
-    res.status(200).json(allSeries);
-  } catch (err) {
-    if (!res.status) res.status(500);
-    throw new Error(err);
-  }
-});
-
-// ANCHOR Get One Series
-/*  
-@Route /series/one-series?id=seriesId
+@Route /series?id=
 * Method : GET
 * Access : Orangtua & Admin & Anak
 */
@@ -28,12 +12,38 @@ exports.getAllSeries = asyncHandler(async (req, res) => {
 exports.getSeries = asyncHandler(async (req, res) => {
   const { id } = req.query;
   try {
-    const seriesExist = await series.findById(id);
-    if (seriesExist) {
-      res.status(200).json(seriesExist);
+    if (id === "") {
+      res.status(400);
+      throw new Error("Please make sure to input the Series ID!");
     }
-    res.status(400);
-    throw new Error("Invalid Series Credentials");
+    const Series = await series
+      .find(
+        id && {
+          _id: id,
+          active: true,
+        }
+      )
+      .select({
+        __v: 0,
+        active: 0,
+      })
+      .populate({
+        path: "dataVideo",
+        match: { active: true },
+        select: id
+          ? { __v: 0, active: 0 }
+          : { quizTimestamp: 0, miniQuiz: 0, active: 0, __v: 0 },
+      })
+      .select({
+        __v: 0,
+        dataVideo: id ? 1 : 0,
+      });
+
+    if (Series.length === 0 && id) {
+      res.status(400);
+      throw new Error("Series not found!");
+    }
+    res.status(200).json(Series);
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);
@@ -68,6 +78,13 @@ exports.createSeries = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Update Series
+/*
+@Route /series/:id
+* Method : PUT
+* Access : Admin
+*/
+
 exports.updateSeries = asyncHandler(async (req, res) => {
   const data = { ...req.body };
   try {
@@ -81,6 +98,37 @@ exports.updateSeries = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Invalid Series Credentials");
     }
+  } catch (err) {
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Delete Series
+/*
+@Route /series/:id?deleteVideo= true|false
+* Method : DELETE
+* Access : Admin
+*/
+
+exports.deleteSeries = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const seriesExist = await series.findOneAndDelete({ _id: id });
+    if (seriesExist) {
+      seriesExist.dataVideo.length > 0
+        ? await video.deleteMany({ _id: seriesExist.dataVideo }).exec()
+        : res.status(200).json({
+            message: "Series without video deleted successfully!",
+            data: seriesExist,
+          });
+      res.status(200).json({
+        message: "Series with video was deleted successfully!",
+        data: seriesExist,
+      });
+    }
+    res.status(400);
+    throw new Error("Series is not exist!, please check your Series ID");
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);

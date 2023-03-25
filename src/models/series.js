@@ -17,6 +17,11 @@ const seriesSchema = mongoose.Schema(
       required: [true, "Please add the display image of the series!"],
       default: "image-default-series.png",
     },
+    active: {
+      type: Boolean,
+      required: [true, "Please add the active status!"],
+      default: false,
+    },
     dataVideo: [
       {
         type: mongoose.Schema.ObjectId,

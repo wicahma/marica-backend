@@ -19,6 +19,8 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 app.use(`${mainRoute}/series`, require("./src/routes/series"));
+app.use(`${mainRoute}/video`, require("./src/routes/video"));
+
 
 // Email validation route
 app.use(`/user`, require("./src/routes/user-validation"));
