@@ -116,17 +116,23 @@ _https://marica.com/api/v1/user/vdDhSiDxcAD8LuNawCiJoI8Y/anak?username=diama_
 
 ### Stack
 
-![Express Js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
-
-![Jwt](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
-
-- JWT - Multer
-- Express - Express Session
-- Express validator - Express Async Handler
-- Username Generator - Google API
-- Passport - Bcrypt
-- Mongodb - Mongoose
-- Nodemailer
+<img
+src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white"
+/>
+<img
+src="https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB"
+/>
+<img src="https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens"/>
+<img src="https://img.shields.io/badge/MongoDB-045228?style=for-the-badge&logo=MongoDB"/>
+<img src="https://img.shields.io/badge/Passport-088542?style=for-the-badge&logo=Passport"/>
+<img src="https://img.shields.io/badge/Express%20Session-black?style=for-the-badge&logo=Express%20Session"/>
+<img src="https://img.shields.io/badge/Express%20Validator-black?style=for-the-badge&logo=Express%20Validator"/>
+<img src="https://img.shields.io/badge/Express%20Async%20Handler-black?style=for-the-badge&logo=Express%20Async%20Handler"/>
+<img src="https://img.shields.io/badge/Username%20Generator-black?style=for-the-badge&logo=Username%20Generator"/>
+<img src="https://img.shields.io/badge/Google%20API-black?style=for-the-badge&logo=Google%20API"/>
+<img src="https://img.shields.io/badge/Bcrypt-black?style=for-the-badge&logo=Bcrypt"/>
+<img src="https://img.shields.io/badge/Mongoose-black?style=for-the-badge&logo=Mongoose"/>
+<img src="https://img.shields.io/badge/Nodemailer-black?style=for-the-badge&logo=Nodemailer"/>
 
 Main Route For API
 
