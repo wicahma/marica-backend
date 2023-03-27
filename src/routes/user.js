@@ -30,7 +30,7 @@ router
     loginUser
   );
 router
-  .route("/:id/update")
+  .route("/:id")
   .put(
     [
       param("id")
@@ -47,6 +47,17 @@ router
     ],
     authJWT,
     updateUser
+  )
+  .delete(
+    [
+      param("id")
+        .exists()
+        .withMessage("User ID is required!")
+        .isLength({ min: 24 })
+        .withMessage("The ID is not an ID!"),
+    ],
+    authJWT,
+    deleteUser
   );
 router
   .route("/re-login/:id")
@@ -133,22 +144,13 @@ router
         .exists()
         .withMessage("Password is required!")
         .isStrongPassword()
-        .withMessage("Your password is not strong enough! *hint: use 8 characters with minimum 1 uppercase, 1 lowercase, 2 number, 1 symbol")
+        .withMessage(
+          "Your password is not strong enough! *hint: use 8 characters with minimum 1 uppercase, 1 lowercase, 2 number, 1 symbol"
+        )
         .isLength({ min: 8 })
         .withMessage("Please input a password of minimum 5 Characters!"),
     ],
     createUserOrangtua
-  )
-  .delete(
-    [
-      body("id")
-        .exists()
-        .withMessage("User ID is required!")
-        .isLength({ min: 24 })
-        .withMessage("The ID is not an ID!"),
-    ],
-    authJWT,
-    deleteUser
   );
 router
   .route("/:id/update-pass")

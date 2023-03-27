@@ -211,7 +211,6 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
   const data = {
     nama: req.body.nama,
-    username: req.body.username,
     imageID: req.body.imageID,
     lahir: req.body.lahir,
     "essentials.username": req.body.username,
@@ -297,11 +296,11 @@ exports.updatePassword = asyncHandler(async (req, res) => {
 @Route /user
 * Method : DELETE
 * Access : Orangtua
-* Body   : id
+* Params : id
 */
 
 exports.deleteUser = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
     res.status(400);
@@ -412,7 +411,7 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
     $set: {
       "essentials.dataAnak.$.username": req.body.newUsername,
       "essentials.dataAnak.$.lahir": req.body.lahir,
-      "essentials.dataAnak.$.imageID": req.body.imageID,
+      "essentials.dataAnak.$.imageID": req.body.image,
     },
   };
   try {
