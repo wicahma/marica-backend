@@ -130,7 +130,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
       createdUser._id,
       createdUser.email
     );
-    await sendEmail(
+    const mailer = await sendEmail(
       createdUser.email,
       `https://marica-backend.vercel.app/user/${validationCode}/validation`,
       (err, result) => {
@@ -139,7 +139,6 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
           res.status(500);
           throw new Error(err);
         }
-        console.log(result);
       }
     );
 
@@ -147,6 +146,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
       id: createdUser._doc._id,
       message:
         "User Created, Please check your email for the verification link!",
+      mail_status: mailer,
     });
   } catch (err) {
     console.log(err);
