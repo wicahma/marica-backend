@@ -3,7 +3,7 @@ const mainRoute = "/api/v1";
 const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./src/configs/db-config");
-const { errorHandler } = require("./src/middlewares/error-handler");
+const { errorHandler } = require("./src/middlewares/response-handler");
 const session = require("express-session");
 
 

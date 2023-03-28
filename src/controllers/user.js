@@ -76,13 +76,20 @@ exports.loginUser = asyncHandler(async (req, res) => {
       const token = generateToken(user._id);
       return !userExist.validated
         ? res.status(401).json({
+            name: "Error!",
             message:
               "User not validated, please validate your email first to login!",
-            email: userExist.email,
+            data: {
+              email: userExist.email,
+            },
           })
         : res.status(200).json({
-            ...userExist._doc,
-            token: token,
+            name: "Error!",
+            message: "Login Success!",
+            data: {
+              ...userExist._doc,
+              token: token,
+            },
           });
     }
     res.status(400);
@@ -137,12 +144,14 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
     );
 
     res.status(201).json({
-      id: createdUser._doc._id,
-      username: createdUser._doc.essentials.username,
-      email: createdUser._doc.email,
+      name: "Created!",
       message:
         "User Created, Please check your email for the verification link!",
-      mail_status: mailer.response,
+      data: {
+        id: createdUser._doc._id,
+        username: createdUser._doc.essentials.username,
+        mail_status: mailer.response,
+      },
     });
   } catch (err) {
     console.log(err);
@@ -175,7 +184,11 @@ exports.reLogin = asyncHandler(async (req, res) => {
     const userExist = await user.findById(id);
     if (userExist) {
       res.status(200).json({
-        ...userExist._doc,
+        name: "OK!",
+        message: "User Found!",
+        data: {
+          ...userExist._doc,
+        },
       });
     } else {
       res.status(400);
@@ -198,7 +211,6 @@ exports.reLogin = asyncHandler(async (req, res) => {
 
 exports.updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  // const data = { ...req.body };
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
     res.status(400);
@@ -231,7 +243,10 @@ exports.updateUser = asyncHandler(async (req, res) => {
     });
 
     if (userExist) {
-      res.status(200).json({ message: "User Updated!" });
+      res.status(200).json({
+        name: "OK!",
+        message: "User Updated!",
+      });
     } else {
       res.status(400);
       throw new Error("Invalid User Credentials! please check your ID");
@@ -281,7 +296,10 @@ exports.updatePassword = asyncHandler(async (req, res) => {
           runValidators: true,
         }
       );
-      res.status(200).json({ message: "Password updated succesfully!" });
+      res.status(200).json({
+        name: "OK!",
+        message: "Password updated succesfully!",
+      });
     }
     res.status(400);
     throw new Error("Invalid User Credentials! hint : Wrong Password");
@@ -314,7 +332,10 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   try {
     const userExist = await user.findByIdAndDelete(id);
     if (userExist) {
-      res.status(200).json({ message: "User deleted successfully!" });
+      res.status(200).json({
+        name: "OK!",
+        message: "User deleted successfully!",
+      });
     } else {
       res.status(400);
       throw new Error("No User found in database!");
@@ -370,9 +391,11 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
       await user.findByIdAndUpdate(id, {
         $push: { "essentials.dataAnak": newAnak },
       });
-      return res
-        .status(200)
-        .json({ message: "Data anak created!", data: newAnak });
+      return res.status(200).json({
+        name: "OK!",
+        message: "Data anak created!",
+        data: { ...newAnak },
+      });
     }
 
     res.status(400);
@@ -438,8 +461,8 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
       );
       if (updatedUser.modifiedCount > 0) {
         return res.status(200).json({
-          message: "Data anak updated!",
-          row_updated: updatedUser.modifiedCount,
+          name: "OK!",
+          message: `Data anak updated! ${updatedUser.modifiedCount} Row Updated!`,
         });
       }
       res.status(400);
@@ -482,7 +505,10 @@ exports.getAnak = asyncHandler(async (req, res) => {
     const familyExist = await user.findById(id);
     if (familyExist && familyExist.userType === "orangtua") {
       if (!username) {
-        res.status(201).json(familyExist.essentials.dataAnak);
+        res.status(201).json({
+          name: "OK!",
+          data: familyExist.essentials.dataAnak,
+        });
       }
       const anakExist = familyExist.essentials.dataAnak.find(
         (anak) => anak.username === username
@@ -537,7 +563,10 @@ exports.deleteAnak = asyncHandler(async (req, res) => {
             }
           );
       if (isUpdated.modifiedCount) {
-        return res.status(201).json({ message: "Anak deleted!" });
+        return res.status(201).json({
+          name: "OK!",
+          message: "Anak deleted!",
+        });
       }
       res.status(400);
       throw new Error("No Anak found in database!");
