@@ -113,11 +113,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 5);
-
     const username = generateFromEmail(req.body.email, 2);
-
-    console.log("hashed pass", hashedPassword);
-
     const newUser = new user({
       email: req.body.email,
       nama: req.body.nama,
@@ -134,9 +130,17 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
       createdUser._id,
       createdUser.email
     );
-    sendEmail(
+    await sendEmail(
       createdUser.email,
-      `http://localhost:4000/user/${validationCode}/validation`
+      `https://marica-backend.vercel.app/user/${validationCode}/validation`,
+      (err, result) => {
+        if (err) {
+          console.log(err);
+          res.status(500);
+          throw new Error(err);
+        }
+        console.log(result);
+      }
     );
 
     res.status(201).json({
@@ -145,7 +149,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
         "User Created, Please check your email for the verification link!",
     });
   } catch (err) {
-    // console.log(err);
+    console.log(err);
     if (!res.status) res.status(500);
     throw new Error(err);
   }
