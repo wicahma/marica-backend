@@ -10,6 +10,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(
+  mainRoute,
   cors({
     origin: "https://marica.vercel.app",
   })
@@ -20,7 +21,6 @@ app.use(express.json());
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 app.use(`${mainRoute}/series`, require("./src/routes/series"));
 app.use(`${mainRoute}/video`, require("./src/routes/video"));
-
 
 // Email validation route
 app.use(`/user`, require("./src/routes/user-validation"));
