@@ -169,7 +169,6 @@ const orangtua = new mongoose.Schema(
 // * Usertype setter
 
 userSchema.path("userType").set((v) => {
-  console.log({ v });
   const enumValues = userSchema.paths.userType.enumValues;
   switch (v) {
     case enumValues[0]:

@@ -8,7 +8,7 @@ const transporter = mailer.createTransport({
   },
 });
 
-exports.sendEmail = async (email, messages, callback) => {
+exports.sendEmail = async (email, messages) => {
   const options = {
     from: "Sekolah Marica <no-reply@gmail.com>",
     to: email,
@@ -16,7 +16,13 @@ exports.sendEmail = async (email, messages, callback) => {
     text: `Halooo, terimakasih karena sudah melakukan registrasi pada website kami, untuk selanjutnya, mohon untuk melakukan validasi email anda dengan mengklik link dibawah ini, terimakasih 🙏 
     ${messages}`,
   };
-  await transporter.sendMail(options, function (err, info) {
-    callback(err, info);
-  });
+  try {
+    const mailer = await transporter.sendMail(options);
+    console.log(mailer);
+    return mailer;
+  } catch (err) {
+    console.log(err);
+    
+    return err;
+  }
 };

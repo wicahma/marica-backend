@@ -132,21 +132,14 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
     );
     const mailer = await sendEmail(
       createdUser.email,
-      `https://marica-backend.vercel.app/user/${validationCode}/validation`,
-      (err, result) => {
-        if (err) {
-          console.log(err);
-          res.status(500);
-          throw new Error(err);
-        }
-      }
+      `https://marica-backend.vercel.app/user/${validationCode}/validation`
     );
 
     res.status(201).json({
       id: createdUser._doc._id,
       message:
         "User Created, Please check your email for the verification link!",
-      mail_status: mailer,
+      mail_status: mailer.response,
     });
   } catch (err) {
     console.log(err);
@@ -341,7 +334,6 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 exports.createUserAnak = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const users = req;
-  console.log(users);
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
     res.status(400);
@@ -369,7 +361,6 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
     );
 
     if (anakExist) {
-      console.log(anakExist);
       res.status(400);
       throw new Error("Username for anak already exist!");
     } else if (familyExist && familyExist.userType === "orangtua") {
@@ -420,8 +411,6 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
   };
   try {
     const familyExist = await user.findById(id);
-
-    console.log(familyExist);
 
     if (familyExist && familyExist.userType === "orangtua") {
       const isAnak = familyExist.essentials.dataAnak.find(

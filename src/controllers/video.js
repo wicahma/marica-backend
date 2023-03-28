@@ -145,7 +145,6 @@ exports.updateVideo = asyncHandler(async (req, res) => {
         new: true,
       }
     );
-    console.log(updatedVideo);
     if (!updatedVideo) {
       res.status(500);
       throw new Error("Video update failed, internal server error!");
@@ -181,11 +180,9 @@ exports.deleteVideo = asyncHandler(async (req, res) => {
         },
       }
     );
-    console.log(isInSeries);
 
     const deletedVideo = await video.findByIdAndDelete(id);
 
-    console.log(deletedVideo);
     if (!deletedVideo) {
       res.status(500);
       throw new Error("Video delete failed, please check the ID!");
