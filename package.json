@@ -35,12 +35,10 @@
     "express-validator": "^6.15.0",
     "googleapis": "^112.0.0",
     "jsonwebtoken": "^9.0.0",
-    "mongodb": "^5.1.0",
     "mongoose": "^7.0.1",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.1",
     "passport-google-oauth20": "^2.0.0",
-    "session-file-store": "^1.5.0",
     "unique-username-generator": "^1.1.3"
   }
 }

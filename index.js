@@ -6,16 +6,16 @@ const dbConnect = require("./src/configs/db-config");
 const { errorHandler } = require("./src/middlewares/error-handler");
 
 dbConnect();
-const port = process.env.PORT || 5000;
 const app = express();
+const port = process.env.PORT || 5000;
 
 app.use(
   cors({
     origin: "https://marica.vercel.app",
   })
 );
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 app.use(`${mainRoute}/series`, require("./src/routes/series"));

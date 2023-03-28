@@ -1,7 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const { user, anak } = require("../models/user");
 
-const ObjectId = require("mongodb").ObjectId;
 const { generateToken, generateValidation } = require("../middlewares/auth");
 const bcrypt = require("bcryptjs");
 const { sendEmail } = require("../configs/email");
@@ -50,6 +49,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
   const { identifier, password } = req.body;
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
+    console.log(isError);
     res.status(400);
     throw {
       name: "Validation Error",
@@ -73,7 +73,8 @@ exports.loginUser = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Invalid User Credentials! hint: wrong username/email");
     } else if (await bcrypt.compare(password, userExist.essentials.password)) {
-      !userExist.validated
+      const token = generateToken(user._id);
+      return !userExist.validated
         ? res.status(401).json({
             message:
               "User not validated, please validate your email first to login!",
@@ -81,7 +82,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
           })
         : res.status(200).json({
             ...userExist._doc,
-            token: generateToken(user._id),
+            token: token,
           });
     }
     res.status(400);
