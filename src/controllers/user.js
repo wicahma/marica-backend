@@ -138,6 +138,8 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
 
     res.status(201).json({
       id: createdUser._doc._id,
+      username: createdUser._doc.essentials.username,
+      email: createdUser._doc.email,
       message:
         "User Created, Please check your email for the verification link!",
       mail_status: mailer.response,
