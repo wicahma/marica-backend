@@ -3,9 +3,8 @@ const mainRoute = "/api/v1";
 const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./src/configs/db-config");
-const { errorHandler } = require("./src/middlewares/response-handler");
+const { errorHandler } = require("./src/middlewares/error-handler");
 const session = require("express-session");
-
 
 dbConnect();
 const app = express();
@@ -19,6 +18,14 @@ app.use(
 );
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true },
+  })
+);
 
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 app.use(`${mainRoute}/series`, require("./src/routes/series"));
