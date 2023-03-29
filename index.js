@@ -13,7 +13,14 @@ const port = process.env.PORT || 5000;
 app.use(
   mainRoute,
   cors({
-    origin: "https://marica.vercel.app",
+    origin: ["https://marica.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
+  })
+);
+app.use(
+  cors({
+    origin: ["https://marica.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
   })
 );
 app.use(express.urlencoded({ extended: false }));
