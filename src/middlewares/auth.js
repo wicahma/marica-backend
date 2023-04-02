@@ -11,10 +11,12 @@ const authJWT = asyncHandler(async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_CODE);
-      req.user = await user.findById(decoded.id).select("-password");
-    } catch (error) {
-      res.status(401);  
-      throw new Error(error);
+      console.log("Decoded ", decoded);
+      req.session.user = await user.findById(decoded.id).select("-password");
+      console.log("User Data ", req.session.user);
+    } catch (err) {
+      res.status(401);
+      throw new Error(err);
     }
     return next();
   }

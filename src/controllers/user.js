@@ -58,10 +58,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
     };
   }
 
-  console.log(req.session);
-
   try {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
     const userExist = await user
       .findOne({
         $or: [{ "essentials.username": identifier }, { email: identifier }],
@@ -76,24 +73,26 @@ exports.loginUser = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Invalid User Credentials! hint: wrong username/email");
     } else if (await bcrypt.compare(password, userExist.essentials.password)) {
-      const token = generateToken(user._id);
-      return !userExist.validated
-        ? res.status(401).json({
-            name: "Error!",
-            message:
-              "User not validated, please validate your email first to login!",
-            data: {
-              email: userExist.email,
-            },
-          })
-        : res.status(200).json({
-            name: "OK!",
-            message: "Login Success!",
-            data: {
-              ...userExist._doc,
-              token: token,
-            },
-          });
+      const token = generateToken(userExist._doc._id.toString());
+      console.log(userExist._doc._id.toString());
+      if (!userExist.validated)
+        return res.status(401).json({
+          name: "Error!",
+          message:
+            "User not validated, please validate your email first to login!",
+          data: {
+            email: userExist.email,
+          },
+        });
+
+      return res.status(200).json({
+        name: "OK!",
+        message: "Login Success!",
+        data: {
+          ...userExist._doc,
+          token: token,
+        },
+      });
     }
     res.status(400);
     throw new Error("Invalid User Credentials! hint: wrong password");
@@ -182,6 +181,8 @@ exports.reLogin = asyncHandler(async (req, res) => {
       stack: isError.errors,
     };
   }
+
+  // console.log({ ...req.session.user });
 
   try {
     const userExist = await user.findById(id);
