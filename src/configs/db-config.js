@@ -9,7 +9,7 @@ const databaseConnection = async () => {
     });
   } catch (err) {
     console.log(`Uh, something unexpected happens: ${err}`);
-    process.exit(1);
+    // process.exit(1);
   }
 };
 
