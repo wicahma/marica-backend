@@ -79,7 +79,7 @@ const userSchema = mongoose.Schema(
         return {
           validator: date < new Date(),
           message: "Date of birth must be in the past!",
-        };  
+        };
       },
     },
     userType: {

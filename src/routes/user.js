@@ -30,6 +30,7 @@ router.route("/login").post(loginValidator, loginUser);
 
 router
   .route("/")
+  .post(createOrangtuaValidator, createUserOrangtua)
   .put(updateValidator, authJWT, sessionChecker, updateUser)
   .delete(authJWT, sessionChecker, deleteUser);
 
@@ -44,15 +45,12 @@ router
 
 router.route("/all-anak").get(authJWT, sessionChecker, getAllAnak);
 
-router
-  .route("/")
-  .get(authJWT, getAllUsers)
-  .post(createOrangtuaValidator, createUserOrangtua);
+router.route("/all").get(authJWT, getAllUsers);
 
 router
   .route("/:id/update-pass")
   .put(updatePasswordValidator, authJWT, sessionChecker, updatePassword);
 
-router.route("/logout").delete(authJWT, sessionChecker, userLogout);
+router.route("/logout").delete(userLogout);
 
 module.exports = router;

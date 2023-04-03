@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const { user, anak } = require("../models/user");
+const { user } = require("../models/user");
 
 const { generateToken, generateValidation } = require("../middlewares/auth");
 const bcrypt = require("bcryptjs");
@@ -124,18 +124,19 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 5);
-    const username = generateFromEmail(req.body.email, 2);
-    const newUser = new user({
+    const usernames = generateFromEmail(req.body.email, 2);
+    // const newUser = new user();
+    console.log(usernames);
+    const createdUser = await user.create({
       email: req.body.email,
       nama: req.body.nama,
       userType: "orangtua",
       essentials: {
-        username: username,
+        username: usernames,
         password: hashedPassword,
       },
       validated: false,
     });
-    const createdUser = await newUser.save();
 
     const validationCode = generateValidation(
       createdUser._id,

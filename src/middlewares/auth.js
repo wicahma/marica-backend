@@ -11,28 +11,30 @@ const authJWT = asyncHandler(async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_CODE);
-      console.log(decoded);
+
+      console.log(Boolean(req.session.user));
+      console.log(decoded.id);
+      if (req.session.user)
+        if (req.session.user._id !== decoded.id) {
+          res.status(401);
+          throw new Error("Not Authorized, wrong user");
+        }
       req.session.user = await user
         .findById(decoded.id)
         .select(
           "-essentials.password -email -__v -createdAt -updatedAt -validated"
         );
         
-      console.log({ ...req.session.user });
-      if (!req.session.user) {
-        res.status(401);
-        throw new Error("Not Authorized, no user");
-      }
     } catch (err) {
-      res.status(401);
+      if (!res.status) res.status(401);
       throw new Error(err);
     }
-    return next();
   }
   if (!token) {
     res.status(401);
     throw new Error("Not Authorized, no token");
   }
+  return next();
 });
 
 const generateToken = (id) => {

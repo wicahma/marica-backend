@@ -23,8 +23,8 @@ app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, maxAge: 604800 },
+    saveUninitialized: false,
+    cookie: { secure: false, maxAge: 1000 * 60 * 10 },
   })
 );
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
