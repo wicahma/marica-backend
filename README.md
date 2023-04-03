@@ -147,20 +147,22 @@ Main Route For API
 - **Description** : Untuk mengambil semua user yang ada
 - **Access** : Admin Only
 - **Auth** : Yes
-- **Params** : None
-- **Query** : id
-- **Body** : None
+- **Params** : -
+- **Query** : -
+- **Body** : -
+- **Session** : _(unimplemented)_ -> _for admin only_
 
 #### **- Re Login User**
 
 - **Method** : GET
-- **URL** : /user/re-login/:id
+- **URL** : /user/re-login
 - **Description** : Untuk melakukan pengecekan data user melalui JWT Token yang tersimpan pada local storage setiap kali user mengakses website yang ada
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
-- **Params** : id
-- **Query** : None
-- **Body** : None
+- **Params** : -
+- **Query** : -
+- **Body** : -
+- **Session** : id (user id)
 
 #### **- Create user Orangtua**
 
@@ -169,9 +171,10 @@ Main Route For API
 - **Description** : Untuk membuat user baru dengan role orangtua
 - **Access** : Admin & Orangtua
 - **Auth** : No
-- **Params** : None
-- **Query** : None
+- **Params** : -
+- **Query** : -
 - **Body** : email, nama, password
+- **Session** : -
 
 #### **- Login User**
 
@@ -180,77 +183,106 @@ Main Route For API
 - **Description** : Untuk melakukan login user
 - **Access** : Admin & Orangtua
 - **Auth** : No
-- **Params** : None
-- **Query** : None
+- **Params** : -
+- **Query** : -
 - **Body** : identifier (username/email), password
+- **Session** : -
 
 #### **- Update User**
 
 - **Method** : PUT
-- **URL** : /user/:id
+- **URL** : /user
 - **Description** : Untuk mengupdate data user
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
-- **Params** : id
-- **Query** : None
+- **Params** : -
+- **Query** : -
 - **Body** : nama?, imageID?, lahir?, username?
+- **Session** : id (user id)
 
 #### **- Delete User**
 
 - **Method** : DELETE
-- **URL** : /user/:id
+- **URL** : /user
 - **Description** : Untuk menghapus data user dan anaknya secara permanen
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
-- **Params** : id
-- **Query** : None
-- **Body** : none
+- **Params** : -
+- **Query** : -
+- **Body** : -
+- **Session** : id (user id)
 
 #### **- Update data Anak**
 
 - **Method** : PUT
-- **URL** : /user/:id/anak
+- **URL** : /user/anak
 - **Description** : Untuk mengupdate / memperbarui data anak
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
-- **Params** : id Orangtua
-- **Query** : None
-- **Body** : username, newUsername, lahir, image
+- **Params** : -
+- **Query** : -
+- **Body** : lahir, image, character
+
+```javascript
+body.character = {
+  gender: enum = ["male", "female"], baju: ObjId[] = [baju1ID, baju2ID, ...],
+  celana: ObjId[] = [celana1ID, celana2ID, ...],
+  aksesorisTangan: ObjId[] = [aksesorisTangan1ID, aksesorisTangan2ID, ...],
+  aksesorisKepala: ObjId[] = [aksesorisKepala1ID, aksesorisKepala2ID, ...],
+  aksesorisMuka: ObjId[] = [aksesorisMuka1ID, aksesorisMuka2ID, ...],
+  }
+```
+
+- **Session** : id (user id orangtua)
 
 #### **- Delete data Anak**
 
 - **Method** : DELETE
-- **URL** : /user/:id/anak
+- **URL** : /user/anak
 - **Description** : Untuk menghapus data user secara permanen
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
-- **Params** : id Orangtua
-- **Query** : None
-- **Body** : None
+- **Params** : -
+- **Query** : -
+- **Body** : -
 
 #### **- Create data Anak**
 
 - **Method** : POST
-- **URL** : /user/:id/anak
-- **Description** : Untuk menghapus data user secara permanen
+- **URL** : /user/anak
+- **Description** : Untuk membuat user anak dari akses izin orangtua dan admin
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
 - **Params** : id Orangtua
-- **Query** : None
-- **Body** : username, nama, lahir
+- **Query** : -
+- **Body** : nama, lahir
+- **Session** : id (user id orangtua)
 
 #### **- Get All data Anak in one User**
 
 - **Method** : GET
-- **URL** : /user/:id/anak
+- **URL** : /user/all-anak
 - **Description** : Untuk mengambil seluruh data anak yang ada pada satu orangtua
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
-- **Params** : id
-- **Query** : None
-- **Body** : None
+- **Params** : -
+- **Query** : -
+- **Body** : -
+- **Session** : id (user id orangtua)
 
-#### **- Update Validation Token** (exp: 30 minute)
+#### **- Get One data Anak in one User**
+
+- **Method** : GET
+- **URL** : /user/anak?idAnak=**id**
+- **Description** : Untuk mengambil 1 data anak yang ada pada satu orangtua
+- **Access** : Admin & Orangtua
+- **Auth** : Yes
+- **Params** : -
+- **Query** : idAnak
+- **Body** : -
+- **Session** : id (user id orangtua)
+
+#### **- Update email Validation Token** (exp: 30 minute)
 
 - **Method** : GET
 - **URL** : /user/:email/validation/create
@@ -258,8 +290,8 @@ Main Route For API
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
 - **Params** : email
-- **Query** : None
-- **Body** : None
+- **Query** : -
+- **Body** : -
 
 ### Series Routing
 

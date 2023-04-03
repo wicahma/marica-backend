@@ -18,7 +18,6 @@ exports.updateValidator = [
     ),
 ];
 
-
 exports.createAnakValidator = [
   body("nama")
     .exists()
@@ -30,16 +29,6 @@ exports.createAnakValidator = [
     .withMessage("Please Include the Birth date!")
     .isDate({ strictMode: false })
     .withMessage("Please input a valid date!"),
-  body("username")
-    .exists()
-    .withMessage("Please Include the username for kids!")
-    .custom((value) => {
-      const regexp = /^(?=[a-zA-Z0-9._]{5,50}$)(?!.*[_.]{2})[^_.].*[^_.]$/g;
-      return regexp.test(value);
-    })
-    .withMessage(
-      "Username must be 5-50 characters long and can only contain letters, numbers, underscores and periods. It cannot start or end with a period or underscore or any other data."
-    ),
 ];
 
 exports.getAnakValidator = [

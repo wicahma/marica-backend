@@ -328,6 +328,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   try {
     const userExist = await user.findByIdAndDelete(_id);
     if (userExist) {
+      req.session.destroy();
       res.status(200).json({
         name: "OK!",
         message: "User deleted successfully!",
@@ -340,6 +341,14 @@ exports.deleteUser = asyncHandler(async (req, res) => {
     if (!res.status) res.status(500);
     throw new Error(err);
   }
+});
+
+exports.userLogout = asyncHandler(async (req, res) => {
+  req.session.destroy();
+  res.status(200).json({
+    name: "OK!",
+    message: "User logged out successfully!",
+  });
 });
 
 // ANCHOR Create One User Anak
@@ -366,7 +375,6 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
   const newAnak = {
     nama: req.body.nama,
     lahir: req.body.lahir,
-    username: req.body.username,
     poin: 0,
     character: {
       gender: req.body.gender || "male",
@@ -375,14 +383,8 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
 
   try {
     const familyExist = await user.findById(_id);
-    const anakExist = familyExist.essentials.dataAnak.find(
-      (anak) => anak.username === req.body.username
-    );
 
-    if (anakExist) {
-      res.status(400);
-      throw new Error("Username for anak already exist!");
-    } else if (familyExist && familyExist.userType === "orangtua") {
+    if (familyExist && familyExist.userType === "orangtua") {
       await user.findByIdAndUpdate(_id, {
         $push: {
           "essentials.dataAnak": {
@@ -411,11 +413,11 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
 
 // ANCHOR Update One User Anak
 /*  
-@Route /user/:id/anak
+@Route /user/anak
 * Method : PUT
 * Access : Orangtua
-* Params : ID Orangtua
-* Body   : ?lahir, ?imageID, username, ?newUsername
+* Session: ID Orangtua
+* Body   : ?lahir, ?imageID, ?character
 */
 
 exports.updateUserAnak = asyncHandler(async (req, res) => {

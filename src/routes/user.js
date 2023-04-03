@@ -13,6 +13,7 @@ const {
   getAnak,
   deleteAnak,
   getAllAnak,
+  userLogout,
 } = require("../controllers/user");
 const { authJWT } = require("../middlewares/auth");
 const {
@@ -51,5 +52,7 @@ router
 router
   .route("/:id/update-pass")
   .put(updatePasswordValidator, authJWT, sessionChecker, updatePassword);
+
+router.route("/logout").delete(authJWT, sessionChecker, userLogout);
 
 module.exports = router;
