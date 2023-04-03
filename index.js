@@ -18,13 +18,13 @@ app.use(
 );
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-// app.set("trust proxy", 1);
+app.set("trust proxy", 1);
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 1000 * 60 * 10 },
+    cookie: { secure: false, maxAge: 1000 * 60 * 1 },
   })
 );
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
