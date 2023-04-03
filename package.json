@@ -2,13 +2,13 @@
   "name": "marica_backend",
   "version": "1.0.1",
   "description": "Marica merupakan sebuah platform pembelajara yang berisikan video video interaktif dan juga menarik yang dapat menarik minat anak kecil. Tidak hanya video, tetapi juga Marica menyediakan Quiz yang akan diputar baik itu pada saat video berlangsung, atau pada saat video selesai, sehingga dapat langsung menguji dan juga mengasah skill anak anak ketika telah selesai mengisi soal soal tersebut.",
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "debug": "nodemon src/index.js",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "firebase deploy --only functions",
+    "deploy": "firebase deploy --only functions:api",
     "logs": "firebase functions:log"
   },
   "repository": {
@@ -39,8 +39,6 @@
     "express-async-handler": "^1.2.0",
     "express-session": "^1.17.3",
     "express-validator": "^6.15.0",
-    "firebase-admin": "^11.5.0",
-    "firebase-functions": "^4.2.1",
     "googleapis": "^112.0.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.1",
@@ -48,8 +46,5 @@
     "nodemailer": "^6.9.1",
     "passport-google-oauth20": "^2.0.0",
     "unique-username-generator": "^1.1.3"
-  },
-  "engines": {
-    "node": "18"
   }
 }

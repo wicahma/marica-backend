@@ -12,40 +12,44 @@ const {
   updateUserAnak,
   getAnak,
   deleteAnak,
+  getAllAnak,
 } = require("../controllers/user");
 const { authJWT } = require("../middlewares/auth");
 const {
   loginValidator,
-  deleteValidator,
-  reLoginValidator,
   createAnakValidator,
   getAnakValidator,
-  deleteAnakValidator,
   createOrangtuaValidator,
   updatePasswordValidator,
+  updateValidator,
 } = require("./validator/user");
 const { sessionChecker } = require("../middlewares/session-checker");
 
 router.route("/login").post(loginValidator, loginUser);
+
 router
-  .route("/:id")
-  .put(authJWT, updateUser)
-  .delete(deleteValidator, authJWT, deleteUser);
+  .route("/")
+  .put(updateValidator, authJWT, sessionChecker, updateUser)
+  .delete(authJWT, sessionChecker, deleteUser);
+
+router.route("/re-login").get(authJWT, sessionChecker, reLogin);
+
 router
-  .route("/re-login/:id")
-  .get(reLoginValidator, authJWT, sessionChecker, reLogin);
-router
-  .route("/:id/anak")
-  .post(createAnakValidator, authJWT, createUserAnak)
-  .put(authJWT, updateUserAnak)
-  .get(getAnakValidator, authJWT, getAnak)
-  .delete(deleteAnakValidator, authJWT, deleteAnak);
+  .route("/anak")
+  .post(createAnakValidator, authJWT, sessionChecker, createUserAnak)
+  .put(authJWT, sessionChecker, updateUserAnak)
+  .get(getAnakValidator, authJWT, sessionChecker, getAnak)
+  .delete(authJWT, sessionChecker, deleteAnak);
+
+router.route("/all-anak").get(authJWT, sessionChecker, getAllAnak);
+
 router
   .route("/")
   .get(authJWT, getAllUsers)
   .post(createOrangtuaValidator, createUserOrangtua);
+
 router
   .route("/:id/update-pass")
-  .put(updatePasswordValidator, authJWT, updatePassword);
+  .put(updatePasswordValidator, authJWT, sessionChecker, updatePassword);
 
 module.exports = router;

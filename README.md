@@ -188,7 +188,7 @@ Main Route For API
 
 - **Method** : PUT
 - **URL** : /user/:id
-- **Description** : Untuk melakukan login user
+- **Description** : Untuk mengupdate data user
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
 - **Params** : id
@@ -199,14 +199,14 @@ Main Route For API
 
 - **Method** : DELETE
 - **URL** : /user/:id
-- **Description** : Untuk menghapus data user secara permanen
+- **Description** : Untuk menghapus data user dan anaknya secara permanen
 - **Access** : Admin & Orangtua
 - **Auth** : Yes
 - **Params** : id
 - **Query** : None
 - **Body** : none
 
-#### **- Update data Anak** (masih ada bug)
+#### **- Update data Anak**
 
 - **Method** : PUT
 - **URL** : /user/:id/anak

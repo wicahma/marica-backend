@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs");
 const { sendEmail } = require("../configs/email");
 const { generateFromEmail } = require("unique-username-generator");
 const { validationResult } = require("express-validator");
+const { default: mongoose } = require("mongoose");
 
 // * Main User Controller
 
@@ -74,7 +75,6 @@ exports.loginUser = asyncHandler(async (req, res) => {
       throw new Error("Invalid User Credentials! hint: wrong username/email");
     } else if (await bcrypt.compare(password, userExist.essentials.password)) {
       const token = generateToken(userExist._doc._id.toString());
-      console.log(userExist._doc._id.toString());
       if (!userExist.validated)
         return res.status(401).json({
           name: "Error!",
@@ -94,6 +94,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
         },
       });
     }
+
     res.status(400);
     throw new Error("Invalid User Credentials! hint: wrong password");
   } catch (err) {
@@ -171,21 +172,15 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
 */
 
 exports.reLogin = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const isError = validationResult(req);
-  if (!isError.isEmpty()) {
-    res.status(400);
-    throw {
-      name: "Validation Error",
-      message: isError.errors[0].msg,
-      stack: isError.errors,
-    };
+  const { _id } = req.session.user;
+
+  if (!_id) {
+    res.status(401);
+    throw new Error("No parameter included!, hint: ID");
   }
 
-  // console.log({ ...req.session.user });
-
   try {
-    const userExist = await user.findById(id);
+    const userExist = await user.findById(_id);
     if (userExist) {
       res.status(200).json({
         name: "OK!",
@@ -214,7 +209,8 @@ exports.reLogin = asyncHandler(async (req, res) => {
 */
 
 exports.updateUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const { _id } = req.session.user;
+
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
     res.status(400);
@@ -236,12 +232,12 @@ exports.updateUser = asyncHandler(async (req, res) => {
     const isTaken = await user.findOne({
       "essentials.username": req.body.username,
     });
-    if (isTaken && isTaken._id != id) {
+    if (isTaken && isTaken._id !== _id) {
       res.status(400);
-      throw new Error("Username already taken!");
+      throw new Error("Username already taken or that is your username sir :)");
     }
 
-    const userExist = await user.findByIdAndUpdate(id, data, {
+    const userExist = await user.findByIdAndUpdate(_id, data, {
       new: true,
       runValidators: true,
     });
@@ -271,7 +267,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
 exports.updatePassword = asyncHandler(async (req, res) => {
   const { newPass, oldPass } = req.body;
-  const { id } = req.params;
+  const { _id } = req.session.user;
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
     res.status(400);
@@ -283,7 +279,7 @@ exports.updatePassword = asyncHandler(async (req, res) => {
   }
 
   try {
-    const isUser = await user.findById(id);
+    const isUser = await user.findById(_id);
 
     if (!isUser) {
       res.status(400);
@@ -291,7 +287,7 @@ exports.updatePassword = asyncHandler(async (req, res) => {
     } else if (await bcrypt.compare(oldPass, isUser.essentials.password)) {
       const hashedPassword = await bcrypt.hash(newPass, 5);
       await user.findByIdAndUpdate(
-        id,
+        _id,
         {
           "essentials.password": hashedPassword,
         },
@@ -322,19 +318,15 @@ exports.updatePassword = asyncHandler(async (req, res) => {
 */
 
 exports.deleteUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const isError = validationResult(req);
-  if (!isError.isEmpty()) {
+  const { _id } = req.session.user;
+
+  if (!_id) {
     res.status(400);
-    throw {
-      name: "Validation Error",
-      message: isError.errors[0].msg,
-      stack: isError.errors,
-    };
+    throw new Error("Invalid User Credentials! please check your ID");
   }
 
   try {
-    const userExist = await user.findByIdAndDelete(id);
+    const userExist = await user.findByIdAndDelete(_id);
     if (userExist) {
       res.status(200).json({
         name: "OK!",
@@ -360,8 +352,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 */
 
 exports.createUserAnak = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const users = req;
+  const { _id } = req.session.user;
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
     res.status(400);
@@ -383,7 +374,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
   };
 
   try {
-    const familyExist = await user.findById(id);
+    const familyExist = await user.findById(_id);
     const anakExist = familyExist.essentials.dataAnak.find(
       (anak) => anak.username === req.body.username
     );
@@ -392,8 +383,13 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Username for anak already exist!");
     } else if (familyExist && familyExist.userType === "orangtua") {
-      await user.findByIdAndUpdate(id, {
-        $push: { "essentials.dataAnak": newAnak },
+      await user.findByIdAndUpdate(_id, {
+        $push: {
+          "essentials.dataAnak": {
+            _id: new mongoose.Types.ObjectId(),
+            ...newAnak,
+          },
+        },
       });
       return res.status(200).json({
         name: "OK!",
@@ -423,24 +419,29 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
 */
 
 exports.updateUserAnak = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  if (!req.body) {
-    res.status(401);
-    throw new Error("No parameter included!");
-  } else if (!id) {
-    res.status(401);
-    throw new Error("No ID included!");
+  const { _id } = req.session.user;
+  const { idAnak } = req.query;
+
+  const isError = validationResult(req);
+  if (!isError.isEmpty()) {
+    res.status(400);
+    throw {
+      name: "Validation Error",
+      message: isError.errors[0].msg,
+      stack: isError.errors,
+    };
   }
 
   const dataAnak = {
     $set: {
-      "essentials.dataAnak.$.username": req.body.newUsername,
       "essentials.dataAnak.$.lahir": req.body.lahir,
       "essentials.dataAnak.$.imageID": req.body.image,
+      "essentials.dataAnak.$.character": req.body.character,
     },
   };
+
   try {
-    const familyExist = await user.findById(id);
+    const familyExist = await user.findById(_id);
 
     if (familyExist && familyExist.userType === "orangtua") {
       const isAnak = familyExist.essentials.dataAnak.find(
@@ -454,13 +455,15 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
 
       const updatedUser = await user.updateOne(
         {
-          "essentials.username": familyExist.essentials.username,
-          "essentials.dataAnak.username": req.body.username,
+          _id: new mongoose.Types.ObjectId(_id),
+          "essentials.dataAnak._id": new mongoose.Types.ObjectId(idAnak),
         },
         { ...dataAnak },
         {
           new: true,
-          arrayFilters: [{ "anak._id": req.body.id }],
+          arrayFilters: [
+            { "essentials.dataAnak._id": new mongoose.Types.ObjectId(idAnak) },
+          ],
         }
       );
       if (updatedUser.modifiedCount > 0) {
@@ -484,45 +487,84 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Get All Anak From one User
+/*  
+@Route /user/all-anak
+* Method : GET
+* Access : Orangtua & Admin
+* Session: ID Orangtua
+*/
+
+exports.getAllAnak = asyncHandler(async (req, res) => {
+  const { _id } = req.session.user;
+
+  try {
+    const familyExist = await user.findById(_id);
+    if (familyExist && familyExist.userType === "orangtua") {
+      res.status(200).json({
+        name: "OK!",
+        message: "Data anak fetched!",
+        data: familyExist.essentials.dataAnak,
+      });
+    } else {
+      res.status(400);
+      throw new Error(
+        "Invalid User Credentials! hint: No user found/user not Orangtua!"
+      );
+    }
+  } catch (err) {
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
 // ANCHOR Get Anak From one User
 /*  
-@Route /user/:id/anak?username=namaUsernameAnak
+@Route /user/anak?idAnak=id anak
 * Method : GET
 * Access : Orangtua
-* Params : ID Orangtua
+* Session: ID Orangtua
+* query  : id anak
 */
 
 exports.getAnak = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { username } = req.query;
-  const isError = validationResult(req);
-  if (!isError.isEmpty()) {
+  const { _id } = req.session.user;
+  const { idAnak } = req.query;
+
+  if (!idAnak || !_id) {
     res.status(400);
-    throw {
-      name: "Validation Error",
-      message: isError.errors[0].msg,
-      stack: isError.errors,
-    };
+    throw new Error("No ID provided in query or Session!");
   }
 
   try {
-    const familyExist = await user.findById(id);
-    if (familyExist && familyExist.userType === "orangtua") {
-      if (!username) {
-        res.status(201).json({
-          name: "OK!",
-          data: familyExist.essentials.dataAnak,
-        });
-      }
-      const anakExist = familyExist.essentials.dataAnak.find(
-        (anak) => anak.username === username
-      );
-      if (anakExist) {
-        return res.status(201).json(anakExist);
-      }
-      res.status(400);
-      throw new Error("No Anak found in database!");
-    }
+    const familys = await user.aggregate([
+      {
+        $unwind: "$essentials.dataAnak",
+      },
+      {
+        $match: {
+          $and: [
+            { _id: new mongoose.Types.ObjectId(_id) },
+            {
+              "essentials.dataAnak._id": new mongoose.Types.ObjectId(idAnak),
+            },
+          ],
+        },
+      },
+      {
+        $limit: 1,
+      },
+    ]);
+
+    const familyExist = familys[0];
+
+    if (familyExist && familyExist.userType === "orangtua")
+      res.status(201).json(familyExist.essentials.dataAnak);
+
+    res.status(400);
+    throw new Error(
+      "Invalid User Credentials! hint: No user found/user not Orangtua!"
+    );
   } catch (err) {
     console.log(err);
     if (!res.status) res.status(500);
@@ -532,46 +574,46 @@ exports.getAnak = asyncHandler(async (req, res) => {
 
 // ANCHOR Delete Anak From one User
 /*  
-@Route /user/:id/anak
+@Route /user/anak
 * Method : DELETE
 * Access : Orangtua
-* Params : ID Orangtua
-* Query  : ?username anak
+* Session: ID Orangtua
+* Query  : id anak
 */
 
 exports.deleteAnak = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { username } = req.query;
-  const isError = validationResult(req);
-  if (!isError.isEmpty()) {
+  const { _id } = req.session.user;
+  const { idAnak } = req.query;
+
+  if (!idAnak || !_id) {
     res.status(400);
-    throw {
-      name: "Validation Error",
-      message: isError.errors[0].msg,
-      stack: isError.errors,
-    };
+    throw new Error("No ID found in query or session!");
   }
 
   try {
-    const familyExist = await user.findById(id);
+    const familyExist = await user.findById(_id);
     if (familyExist && familyExist.userType === "orangtua") {
-      const isUpdated = username
-        ? await user.updateOne(
-            { _id: id, "essentials.dataAnak.username": username },
-            { $pull: { "essentials.dataAnak": { username: username } } }
-          )
-        : await user.updateOne(
-            { _id: id, "essentials.dataAnak.username": username },
-            {
-              $set: { "essentials.dataAnak": [] },
-            }
-          );
+      const isUpdated = await user.updateOne(
+        {
+          _id: _id,
+          "essentials.dataAnak._id": new mongoose.Types.ObjectId(idAnak),
+        },
+        {
+          $pull: {
+            "essentials.dataAnak": {
+              _id: new mongoose.Types.ObjectId(idAnak),
+            },
+          },
+        }
+      );
+
       if (isUpdated.modifiedCount) {
         return res.status(201).json({
           name: "OK!",
           message: "Anak deleted!",
         });
       }
+
       res.status(400);
       throw new Error("No Anak found in database!");
     }

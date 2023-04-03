@@ -17,12 +17,6 @@ const optionalWithLength = (minLength, maxLength) => {
 
 const anak = new mongoose.Schema(
   {
-    username: {
-      type: String,
-      required: [true, "Please add Your username"],
-      validate: optionalWithLength(5, 50),
-      unique: true,
-    },
     nama: {
       type: String,
       required: [true, "Please add Your full name"],
@@ -65,6 +59,7 @@ const anak = new mongoose.Schema(
   },
   {
     timestamps: true,
+    _id: true,
   }
 );
 
@@ -186,4 +181,3 @@ userSchema.path("userType").set((v) => {
 const model = mongoose.model;
 
 exports.user = model("user", userSchema);
-// exports.anak = model("anak", anak);

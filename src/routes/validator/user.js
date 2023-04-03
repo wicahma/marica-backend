@@ -10,11 +10,6 @@ exports.loginValidator = [
 ];
 
 exports.updateValidator = [
-  param("id")
-    .exists()
-    .withMessage("User ID is required!")
-    .isLength({ min: 24 })
-    .withMessage("The ID is not an ID!"),
   body("essentials.password")
     .not()
     .exists()
@@ -23,21 +18,6 @@ exports.updateValidator = [
     ),
 ];
 
-exports.deleteValidator = [
-  param("id")
-    .exists()
-    .withMessage("User ID is required!")
-    .isLength({ min: 24 })
-    .withMessage("The ID is not an ID!"),
-];
-
-exports.reLoginValidator = [
-  param("id")
-    .exists()
-    .withMessage("User ID is required!")
-    .isLength({ min: 24 })
-    .withMessage("The ID is not an ID!"),
-];
 
 exports.createAnakValidator = [
   body("nama")
@@ -63,14 +43,6 @@ exports.createAnakValidator = [
 ];
 
 exports.getAnakValidator = [
-  param("id")
-    .exists()
-    .withMessage("User ID is required!")
-    .isLength({ min: 24 })
-    .withMessage("The ID is not an ID!"),
-];
-
-exports.deleteAnakValidator = [
   param("id")
     .exists()
     .withMessage("User ID is required!")
