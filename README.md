@@ -301,7 +301,19 @@ body.character = {
 
 ### Series Routing
 
-( ! ) _Under Construction, Please comeback later_
+- /**main**/series -> _this is for user Routing_
+
+#### **- Get All Series**
+
+- **Method** : GET
+- **URL** : /series
+- **Description** : Untuk mengambil semua data series tanpa detail data video
+- **Access** : admin & orangtua & anak
+- **Auth** : Yes
+- **Params** : -
+- **Query** : -
+- **Body** : -
+- **Session** : _(unimplemented)_ -> _for admin only_
 
 ### Video Routing
 

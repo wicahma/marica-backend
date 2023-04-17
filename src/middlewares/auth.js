@@ -12,8 +12,8 @@ const authJWT = asyncHandler(async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_CODE);
 
-      console.log(Boolean(req.session.user));
-      console.log(decoded.id);
+      // console.log(Boolean(req.session.user));
+      // console.log(decoded.id);
       if (req.session.user)
         if (req.session.user._id !== decoded.id) {
           res.status(401);
@@ -22,7 +22,7 @@ const authJWT = asyncHandler(async (req, res, next) => {
       req.session.user = await user
         .findById(decoded.id)
         .select(
-          "-essentials.password -email -__v -createdAt -updatedAt -validated"
+          "-essentials.password -__v -createdAt -updatedAt -validated"
         );
         
     } catch (err) {

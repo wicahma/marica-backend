@@ -18,15 +18,10 @@ exports.getSeries = asyncHandler(async (req, res) => {
     }
     const Series = await series
       .find(
-        id && {
+        (id && {
           _id: id,
-          active: true,
-        }
+        }) || { active: true }
       )
-      .select({
-        __v: 0,
-        active: 0,
-      })
       .populate({
         path: "dataVideo",
         match: { active: true },
@@ -86,11 +81,17 @@ exports.createSeries = asyncHandler(async (req, res) => {
 */
 
 exports.updateSeries = asyncHandler(async (req, res) => {
-  const data = { ...req.body };
+  const data = new series({
+    judul: req.body.judul,
+    deskripsi: req.body.deskripsi,
+    active: req.body.status,
+    dataVideo: req.body.videos,
+  });
+
   try {
     const seriesExist = await series.findOneAndUpdate(
       { "dataVideo._id": data.id },
-      { data }
+      data
     );
     if (seriesExist) {
       res.status(200).json(seriesExist);

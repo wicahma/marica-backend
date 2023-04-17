@@ -8,26 +8,20 @@ const {
   updateSeries,
   deleteSeries,
 } = require("../controllers/series");
-const { body } = require("express-validator");
+const { sessionChecker } = require("../middlewares/session-checker");
+const {
+  createSeriesValidator,
+  updateSeriesValidator,
+} = require("./validator/series");
 
 router
   .route("/")
-  .get(getSeries)
-  .post(
-    [
-      body("judul")
-        .exists()
-        .withMessage("Judul is required!")
-        .isLength({ min: 1, max: 100 })
-        .withMessage("Judul must be between 1 and 100 characters long!"),
-      body("deskripsi")
-        .exists()
-        .withMessage("Deskripsi is required!")
-        .isLength({ min: 1, max: 250 })
-        .withMessage("Deskripsi must be between 1 and 250 characters long!"),
-    ],
-    createSeries
-  );
-router.route("/:id").put(updateSeries).delete(deleteSeries);
+  .get(authJWT, sessionChecker, getSeries)
+  .post(createSeriesValidator, authJWT, sessionChecker, createSeries);
+
+router
+  .route("/:id")
+  .put(updateSeriesValidator, authJWT, sessionChecker, updateSeries)
+  .delete(authJWT, sessionChecker, deleteSeries);
 
 module.exports = router;

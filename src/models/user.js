@@ -143,6 +143,11 @@ const orangtua = new mongoose.Schema(
       maxlength: [20, "Username cannot be more than 20 characters"],
       unique: true,
     },
+    phone: {
+      type: String,
+      required: false,
+      maxlength: [14, "Phone number cannot be more than 14 characters"],
+    },
     password: {
       type: String,
       required: [true, "Please add your password"],
@@ -153,8 +158,8 @@ const orangtua = new mongoose.Schema(
       maxlength: [100, "Address cannot be more than 100 characters"],
     },
     dataAnak: [anak],
-    dataBilling: [{ type: mongoose.Schema.Types.Mixed, ref: "payment" }],
-    kidsAnalytics: [{ type: mongoose.Schema.Types.Mixed, ref: "analytics" }],
+    dataBilling: [{ type: mongoose.Schema.Types.ObjectId, ref: "payment" }],
+    kidsAnalytics: [{ type: mongoose.Schema.Types.ObjectId, ref: "analytics" }],
   },
   {
     _id: false,

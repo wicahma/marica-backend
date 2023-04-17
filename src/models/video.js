@@ -11,6 +11,12 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please add the video thumbnail"],
   },
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+  type: {
+    type: String,
+    enum: ["paid", "free"],
+    required: [true, "Please add the video type!"],
+  },
   active: {
     type: Boolean,
     required: [true, "Please add the active status!"],

@@ -200,7 +200,7 @@ exports.reLogin = asyncHandler(async (req, res) => {
   }
 });
 
-// ANCHOR Update User
+// ANCHOR Update User-email
 /*  
 @Route /user/:id
 * Method : PUT

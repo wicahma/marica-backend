@@ -27,9 +27,14 @@ app.use(
     cookie: { secure: false, maxAge: 1000 * 60 * 1 },
   })
 );
+app.use("/", (req, res, next) => {
+  console.log(req.session);
+  next();
+});
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 app.use(`${mainRoute}/series`, require("./src/routes/series"));
 app.use(`${mainRoute}/video`, require("./src/routes/video"));
+app.use(`${mainRoute}/payment`, require("./src/routes/payment"));
 
 // Email validation route./src/routes/user-validation
 app.use(`/user`, require("./src/routes/user-validation"));
