@@ -11,11 +11,20 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please add the video thumbnail"],
   },
-  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+  vote: [
+    {
+      _id: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
+      type: { type: String, enum: ["like", "dislike"] },
+    },
+    {
+      _id: false,
+    },
+  ],
   type: {
     type: String,
     enum: ["paid", "free"],
     required: [true, "Please add the video type!"],
+    default: "paid",
   },
   active: {
     type: Boolean,
@@ -30,7 +39,7 @@ const videoSchema = new mongoose.Schema({
     },
     quizTimestamp: {
       type: Number,
-      required: [true, "Please add the timestamp in epoch for the quiz!"],
+      required: [false, "Please add the timestamp in epoch for the quiz!"],
     },
     quiz: {
       type: mongoose.Schema.Types.Mixed,
@@ -38,6 +47,8 @@ const videoSchema = new mongoose.Schema({
     },
   },
 });
+
+//NOTE - UNUSED
 
 const attachment = new mongoose.Schema({
   tipe: {
@@ -50,6 +61,8 @@ const attachment = new mongoose.Schema({
     required: false,
   },
 });
+
+//NOTE - UNUSED
 
 const pilihanGanda = new mongoose.Schema({
   attachment: attachment,
@@ -69,6 +82,8 @@ const pilihanGanda = new mongoose.Schema({
   },
 });
 
+//NOTE - UNUSED
+
 const fillTheBlank = new mongoose.Schema({
   attachment: attachment,
   soal: {
@@ -82,6 +97,8 @@ const fillTheBlank = new mongoose.Schema({
   },
 });
 
+//NOTE - UNUSED
+
 const reArrange = new mongoose.Schema({
   attachment: attachment,
   soal: {
@@ -94,6 +111,8 @@ const reArrange = new mongoose.Schema({
     maxlength: [15, "Answer cannot be more than 15 characters!"],
   },
 });
+
+//NOTE - UNUSED
 
 videoSchema.path("miniQuiz.tipe").set((v) => {
   switch (v) {

@@ -14,6 +14,7 @@ const {
   deleteAnak,
   getAllAnak,
   userLogout,
+  likeVideo,
 } = require("../controllers/user");
 const { authJWT } = require("../middlewares/auth");
 const {

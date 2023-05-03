@@ -11,9 +11,6 @@ const authJWT = asyncHandler(async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_CODE);
-
-      // console.log(Boolean(req.session.user));
-      // console.log(decoded.id);
       if (req.session.user)
         if (req.session.user._id !== decoded.id) {
           res.status(401);

@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 
+//NOTE - UNUSED
+
 const seriesSchema = mongoose.Schema(
   {
     judul: {

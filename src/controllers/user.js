@@ -125,8 +125,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 5);
     const usernames = generateFromEmail(req.body.email, 2);
-    // const newUser = new user();
-    console.log(usernames);
+
     const createdUser = await user.create({
       email: req.body.email,
       nama: req.body.nama,
@@ -375,7 +374,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
 
   const newAnak = {
     nama: req.body.nama,
-    lahir: req.body.lahir,
+    rentangUsia: req.body.usia,
     poin: 0,
     character: {
       gender: req.body.gender || "male",
@@ -624,6 +623,20 @@ exports.deleteAnak = asyncHandler(async (req, res) => {
     throw new Error("Invalid User Credentials! hint: No user found!");
   } catch (err) {
     console.log(err);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Get Liked Video
+
+exports.getLikedVideo = asyncHandler(async (req, res) => {
+  const { _id } = req.session.user;
+
+  try {
+
+    
+  } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);
   }

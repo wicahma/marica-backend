@@ -12,7 +12,7 @@ const optionalWithLength = (minLength, maxLength) => {
   };
 };
 
-// * Child User Schema
+//NOTE - Child User Schema
 // ! This Schema is not a model, it is a subdocument of the main user model
 
 const anak = new mongoose.Schema(
@@ -22,15 +22,10 @@ const anak = new mongoose.Schema(
       required: [true, "Please add Your full name"],
       validate: optionalWithLength(2, 100),
     },
-    lahir: {
-      type: Date,
-      required: false,
-      validate: (date) => {
-        return {
-          validator: date < new Date(),
-          message: "Date of birth must be in the past!",
-        };
-      },
+    rentangUsia: {
+      type: String,
+      enum: ["0-4", "5-8"],
+      required: true,
     },
     imageID: {
       type: String,
@@ -42,6 +37,7 @@ const anak = new mongoose.Schema(
       required: true,
       default: 0,
     },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "video" }],
     character: {
       gender: {
         type: String,
@@ -63,7 +59,7 @@ const anak = new mongoose.Schema(
   }
 );
 
-// * Main User Schema
+//NOTE - Main User Schema
 
 const userSchema = mongoose.Schema(
   {
@@ -113,7 +109,7 @@ const userSchema = mongoose.Schema(
   }
 );
 
-// * Admin Schema
+//NOTE - Admin Schema
 
 const admin = new mongoose.Schema(
   {
@@ -133,7 +129,7 @@ const admin = new mongoose.Schema(
   }
 );
 
-// * Orangtua Schema
+//NOTE - Orangtua Schema
 
 const orangtua = new mongoose.Schema(
   {
@@ -166,7 +162,7 @@ const orangtua = new mongoose.Schema(
   }
 );
 
-// * Usertype setter
+//NOTE - Usertype Setter
 
 userSchema.path("userType").set((v) => {
   const enumValues = userSchema.paths.userType.enumValues;

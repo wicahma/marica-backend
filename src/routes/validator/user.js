@@ -1,10 +1,16 @@
 const { body, param } = require("express-validator");
 
 exports.loginValidator = [
-  body("identifier").exists().withMessage("Email or Username is required!"),
+  body("identifier")
+    .exists()
+    .withMessage("Email or Username is required!")
+    .isString()
+    .withMessage("Identifier must be a string!"),
   body("password")
     .exists()
     .withMessage("Password is required!")
+    .isString()
+    .withMessage("Password must be a string!")
     .isLength({ min: 8 })
     .withMessage("Password must be at least 8 characters long!"),
 ];
@@ -22,20 +28,22 @@ exports.createAnakValidator = [
   body("nama")
     .exists()
     .withMessage("Please Include the Kids name!")
+    .isString()
+    .withMessage("Nama must be a string!")
     .isLength({ min: 2, max: 100 })
     .toLowerCase(),
-  body("lahir")
+  body("usia")
     .exists()
-    .withMessage("Please Include the Birth date!")
-    .isDate({ strictMode: false })
-    .withMessage("Please input a valid date!"),
+    .withMessage("Please Include the Rentang Usia!")
+    .isString()
+    .withMessage("Usia must be a string!"),
 ];
 
 exports.getAnakValidator = [
   param("id")
     .exists()
     .withMessage("User ID is required!")
-    .isLength({ min: 24 })
+    .isMongoId()
     .withMessage("The ID is not an ID!"),
 ];
 
@@ -67,7 +75,7 @@ exports.updatePasswordValidator = [
   param("id")
     .exists()
     .withMessage("User ID is required!")
-    .isLength({ min: 24 })
+    .isMongoId()
     .withMessage("The ID is not an ID!"),
   body("newPass")
     .exists()

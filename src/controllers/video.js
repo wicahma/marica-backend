@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const series = require("../models/series");
 const video = require("../models/video");
 const { user } = require("../models/user");
+const { default: mongoose } = require("mongoose");
 
 // ANCHOR Get Videos & One Video
 /*
@@ -11,27 +12,56 @@ const { user } = require("../models/user");
 */
 
 exports.getVideo = asyncHandler(async (req, res) => {
-  const { id } = req.query;
+  const { id } = req.query,
+    oneVideo = id ? { _id: new mongoose.Types.ObjectId(id) } : {};
+  let returnData;
+
   try {
     const Video = await video
-      .find(
-        id && {
-          _id: id,
-          active: true,
-        }
-      )
-      .select({
-        __v: 0,
-        active: 0,
-      })
-      .select({
-        miniQuiz: id ? 1 : 0,
-      });
+      .aggregate([
+        {
+          $match: {
+            ...oneVideo,
+            active: true,
+          },
+        },
+        {
+          $project: {
+            like: {
+              $size: {
+                $filter: {
+                  input: "$vote",
+                  as: "vote",
+                  cond: { $eq: ["$$vote.type", "like"] },
+                },
+              },
+            },
+            dislike: {
+              $size: {
+                $filter: {
+                  input: "$vote",
+                  as: "vote",
+                  cond: { $eq: ["$$vote.type", "dislike"] },
+                },
+              },
+            },
+            videoURL: 1,
+            thumbnail: 1,
+            type: 1,
+          },
+        },
+      ])
+      .exec();
     if (Video.length === 0 && id) {
       res.status(400);
       throw new Error("Video not found!");
     }
-    res.status(200).json(Video);
+    returnData = id ? { data: { ...Video[0] } } : { data: Video };
+    res.status(200).json({
+      type: "Success!",
+      message: "Video fetched successfully!",
+      ...returnData,
+    });
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);
@@ -43,39 +73,39 @@ exports.getVideo = asyncHandler(async (req, res) => {
 @Route /video?seriesID=seriesId
 * Method : POST
 * Access : Admin
-* Body : videoURL, thumbnail, ?quizTimestamp, ?quizType, ?quiz, ?quizAttachmentType, ?quizAttachmentData
-
-*quiz = {
-
+* Body : videoURL, thumbnail, type
+// ?quizTimestamp, ?quizType, ?quiz, ?quizAttachmentType, ?quizAttachmentData
 }
 */
 
 exports.createVideo = asyncHandler(async (req, res) => {
   const {
-    videoURL,
-    quizTimestamp,
-    quizType,
-    quiz,
-    quizAttachmentType,
-    quizAttachmentData,
-    thumbnail,
-  } = {
-    ...req.body,
-  };
-  const { seriesID } = req.query;
+      videoURL,
+      thumbnail,
+      type,
+      // quizTimestamp,
+      // quizType,
+      // quiz,
+      // quizAttachmentData,
+      // quizAttachmentType,
+    } = {
+      ...req.body,
+    },
+    { seriesID } = req.query;
 
   const newVideo = new video({
     videoURL: videoURL,
     thumbnail: thumbnail,
-    "miniQuiz.quizTimestamp": quizTimestamp,
-    "miniQuiz.tipe": quizType,
-    "miniQuiz.quiz": {
-      attachment: {
-        tipe: quizAttachmentType,
-        data: quizAttachmentData,
-      },
-      ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
-    },
+    type: type,
+    // "miniQuiz.quizTimestamp": quizTimestamp,
+    // "miniQuiz.tipe": quizType,
+    // "miniQuiz.quiz": {
+    //   attachment: {
+    //     tipe: quizAttachmentType,
+    //     data: quizAttachmentData,
+    //   },
+    //   ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
+    // },
   });
   try {
     const createdVideo = await newVideo.save();
@@ -84,22 +114,20 @@ exports.createVideo = asyncHandler(async (req, res) => {
       res.status(500);
       throw new Error("Video creation failed, internal server error!");
     }
-    if (seriesID) {
-      const seriesExist = await series.findById(seriesID);
+    // if (seriesID) {
+    //   const seriesExist = await series.findById(seriesID);
 
-      if (!seriesExist) {
-        res.status(400);
-        throw new Error("Invalid Series Credentials!");
-      }
+    //   if (!seriesExist) {
+    //     res.status(400);
+    //     throw new Error("Invalid Series Credentials!");
+    //   }
 
-      seriesExist.dataVideo.push(createdVideo._id);
-      await seriesExist.save();
-    }
+    //   seriesExist.dataVideo.push(createdVideo._id);
+    //   await seriesExist.save();
+    // }
 
     res.status(201).json({
-      message: `Video created successfully!${
-        seriesID && ", Series updated succesfully!"
-      }`,
+      message: "Video created successfully!",
       id: createdVideo._id,
     });
   } catch (err) {
@@ -118,11 +146,11 @@ exports.createVideo = asyncHandler(async (req, res) => {
 
 exports.updateVideo = asyncHandler(async (req, res) => {
   const {
-    quizTimestamp,
-    quizType,
-    quiz,
-    quizAttachmentType,
-    quizAttachmentData,
+    // quizTimestamp,
+    // quizType,
+    // quiz,
+    // quizAttachmentType,
+    // quizAttachmentData,
     thumbnail,
   } = req.body;
   const { id } = req.params;
@@ -131,15 +159,15 @@ exports.updateVideo = asyncHandler(async (req, res) => {
       id,
       {
         thumbnail: thumbnail,
-        "miniQuiz.quizTimestamp": quizTimestamp,
-        "miniQuiz.tipe": quizType,
-        "miniQuiz.quiz": {
-          attachment: {
-            tipe: quizAttachmentType,
-            data: quizAttachmentData,
-          },
-          ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
-        },
+        // "miniQuiz.quizTimestamp": quizTimestamp,
+        // "miniQuiz.tipe": quizType,
+        // "miniQuiz.quiz": {
+        //   attachment: {
+        //     tipe: quizAttachmentType,
+        //     data: quizAttachmentData,
+        //   },
+        //   ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
+        //   },
       },
       {
         new: true,
@@ -193,6 +221,109 @@ exports.deleteVideo = asyncHandler(async (req, res) => {
       id: deletedVideo._id,
     });
   } catch (err) {
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Like video
+
+exports.likeVideo = asyncHandler(async (req, res) => {
+  const { id } = req.params,
+    { idAnak } = req.body,
+    { type } = req.query,
+    { _id } = req.session.user;
+
+  try {
+    let likeOperator,
+      likeMessage,
+      likeType,
+      userOperator = {
+        $pull: {
+          "essentials.dataAnak.$.like": new mongoose.Types.ObjectId(id),
+        },
+      };
+    const hasLiked = await video.findOne({
+      _id: id,
+      "vote._id": new mongoose.Types.ObjectId(idAnak),
+    });
+
+    console.log(hasLiked);
+
+    if (!type && hasLiked) {
+      likeOperator = {
+        $pull: { vote: { _id: new mongoose.Types.ObjectId(idAnak) } },
+      };
+      console.log("jalan");
+      likeType = "unlike";
+      likeMessage = "Video unliked successfully!";
+    } else {
+      if (type === "dislike") {
+        likeOperator = {
+          $set: {
+            vote: { _id: new mongoose.Types.ObjectId(idAnak), type: "dislike" },
+          },
+        };
+        likeType = "dislike";
+        likeMessage = "Video disliked successfully!";
+      } else if (type === "like") {
+        likeOperator = {
+          $set: {
+            vote: { _id: new mongoose.Types.ObjectId(idAnak), type: "like" },
+          },
+        };
+        userOperator = {
+          $addToSet: {
+            "essentials.dataAnak.$.like": new mongoose.Types.ObjectId(id),
+          },
+        };
+        likeType = "like";
+        likeMessage = "Video liked successfully!";
+      }
+    }
+
+    const like = await video
+      .updateOne(
+        {
+          _id: id,
+        },
+        likeOperator,
+        {
+          new: true,
+          arrayFilters: [{ "likes._id": idAnak }],
+        }
+      )
+      .then(async (likeData) => {
+        const userLike = await user.updateOne(
+          {
+            _id: new mongoose.Types.ObjectId(_id),
+            "essentials.dataAnak._id": new mongoose.Types.ObjectId(idAnak),
+          },
+          { ...userOperator },
+          {
+            new: true,
+            arrayFilters: [
+              {
+                "essentials.dataAnak._id": new mongoose.Types.ObjectId(idAnak),
+              },
+            ],
+          }
+        );
+        return { video: { ...likeData }, user: { ...userLike } };
+      });
+
+    if (like.video.matchedCount === 1 && like.user.matchedCount === 1) {
+      return res.status(201).json({
+        name: "Success!",
+        message: likeMessage,
+        data: like,
+      });
+    }
+
+    res.status(400);
+    throw new Error("Invalid Data Input! hint: No video found!");
+  } catch (err) {
+    console.log(err);
     if (!res.status) res.status(500);
     throw new Error(err);
   }
