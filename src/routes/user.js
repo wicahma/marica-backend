@@ -14,7 +14,7 @@ const {
   deleteAnak,
   getAllAnak,
   userLogout,
-  likeVideo,
+  getLikedVideo,
 } = require("../controllers/user");
 const { authJWT } = require("../middlewares/auth");
 const {
@@ -38,20 +38,32 @@ router
 router.route("/re-login").get(authJWT, sessionChecker, reLogin);
 
 router
+  .route("/all")
+  .get(
+    authJWT,
+    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    getAllUsers
+  );
+
+router
+  .route("/password")
+  .put(updatePasswordValidator, authJWT, sessionChecker, updatePassword);
+
+router.route("/logout").delete(authJWT, sessionChecker, userLogout);
+
+//NOTE - Anak Routes
+
+router
   .route("/anak")
   .post(createAnakValidator, authJWT, sessionChecker, createUserAnak)
   .put(authJWT, sessionChecker, updateUserAnak)
   .get(getAnakValidator, authJWT, sessionChecker, getAnak)
   .delete(authJWT, sessionChecker, deleteAnak);
 
-router.route("/all-anak").get(authJWT, sessionChecker, getAllAnak);
-
-router.route("/all").get(authJWT, getAllUsers);
-
 router
-  .route("/:id/update-pass")
-  .put(updatePasswordValidator, authJWT, sessionChecker, updatePassword);
+  .route("/anak/:idAnak/like-history")
+  .get(authJWT, sessionChecker, getLikedVideo);
 
-router.route("/logout").delete(userLogout);
+router.route("/all-anak").get(authJWT, sessionChecker, getAllAnak);
 
 module.exports = router;

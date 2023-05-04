@@ -7,6 +7,7 @@ const { sendEmail } = require("../configs/email");
 const { generateFromEmail } = require("unique-username-generator");
 const { validationResult } = require("express-validator");
 const { default: mongoose } = require("mongoose");
+const jwt = require("jsonwebtoken");
 
 // * Main User Controller
 
@@ -15,21 +16,10 @@ const { default: mongoose } = require("mongoose");
 @Route /user
 * Method : GET
 * Access : Admin
-* Query : ID Admin (id)
 */
 
 exports.getAllUsers = asyncHandler(async (req, res) => {
-  const { id } = req.query;
-  if (!id) {
-    res.status(401);
-    throw new Error("No parameter included!, hint: ID");
-  }
   try {
-    const isAdmin = await user.findById(id);
-    if (!isAdmin || isAdmin.userType !== "admin") {
-      res.status(401);
-      throw new Error("Not authorized as an admin!");
-    }
     const users = await user.find();
     res.status(200).json(users);
   } catch (err) {
@@ -167,8 +157,8 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
 /*  
 @Route /user/re-login/:id
 * Method : GET
-* Access : Orangtua & Admin
-* Params : ID user
+* Access : Orangtua, Admin
+* Params : -
 */
 
 exports.reLogin = asyncHandler(async (req, res) => {
@@ -203,9 +193,10 @@ exports.reLogin = asyncHandler(async (req, res) => {
 /*  
 @Route /user/:id
 * Method : PUT
-* Access : Orangtua & Admin
-* Params : ID user
+* Access : Orangtua, Admin
+* Params : -
 * Body   : All User Data
+* Session: User ID
 */
 
 exports.updateUser = asyncHandler(async (req, res) => {
@@ -261,7 +252,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
 /*  
 @Route /user
 * Method : PUT
-* Access : Orangtua & Admin
+* Access : Orangtua, Admin
 * Body   : id, newPass, oldPass
 */
 
@@ -313,7 +304,7 @@ exports.updatePassword = asyncHandler(async (req, res) => {
 /*  
 @Route /user
 * Method : DELETE
-* Access : Orangtua
+* Access : Orangtua, Admin
 * Params : id
 */
 
@@ -343,21 +334,31 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR User Logout
+/*  
+@Route /user/logout
+* Method : POST
+* Access : Orangtua, Admin
+* Params : -
+* Body   : -
+*/
+
 exports.userLogout = asyncHandler(async (req, res) => {
   req.session.destroy();
   res.status(200).json({
     name: "OK!",
     message: "User logged out successfully!",
   });
+
 });
 
 // ANCHOR Create One User Anak
 /*  
 @Route /user/:id/anak
 * Method : POST
-* Access : Orangtua
-* Params : ID Orangtua
-* Body   : nama, username, ?lahir
+* Access : Orangtua, Admin
+* Params : -
+* Body   : nama, lahir
 */
 
 exports.createUserAnak = asyncHandler(async (req, res) => {
@@ -415,7 +416,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
 /*  
 @Route /user/anak
 * Method : PUT
-* Access : Orangtua
+* Access : Orangtua, Admin
 * Session: ID Orangtua
 * Body   : ?lahir, ?imageID, ?character
 */
@@ -629,13 +630,74 @@ exports.deleteAnak = asyncHandler(async (req, res) => {
 });
 
 // ANCHOR Get Liked Video
+/*
+@Route /user/liked-video/:idAnak
+* Method : GET
+* Access : Orangtua, Admin
+* Session: ID Orangtua
+* Params : idAnak
+*/
 
 exports.getLikedVideo = asyncHandler(async (req, res) => {
-  const { _id } = req.session.user;
+  const { _id } = req.session.user,
+    { idAnak } = req.params;
 
   try {
+    const likeHistory = await user.aggregate([
+      {
+        $unwind: {
+          path: "$essentials.dataAnak",
+        },
+      },
+      {
+        $match: {
+          $and: [
+            {
+              _id: new mongoose.Types.ObjectId(_id),
+            },
+            {
+              "essentials.dataAnak._id": new mongoose.Types.ObjectId(idAnak),
+            },
+          ],
+        },
+      },
+      {
+        $limit: 1,
+      },
+      {
+        $lookup: {
+          from: "videos",
+          localField: "essentials.dataAnak.like",
+          foreignField: "_id",
+          as: "likeHistory",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          idParent: "$_id",
+          idAnak: "$essentials.dataAnak._id",
+          nama: "$essentials.dataAnak.nama",
+          like: {
+            length: {
+              $size: "$essentials.dataAnak.like",
+            },
+            history: "$likeHistory",
+          },
+        },
+      },
+    ]);
 
-    
+    if (likeHistory.length) {
+      return res.status(200).json({
+        type: "Success!",
+        message: "Liked Video Fetched!",
+        data: likeHistory[0],
+      });
+    }
+
+    res.status(400);
+    throw new Error("Invalid User Data Credentials! hint: No data found!");
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);

@@ -72,17 +72,16 @@ exports.createOrangtuaValidator = [
 ];
 
 exports.updatePasswordValidator = [
-  param("id")
-    .exists()
-    .withMessage("User ID is required!")
-    .isMongoId()
-    .withMessage("The ID is not an ID!"),
   body("newPass")
     .exists()
     .withMessage("New Password is required!")
+    .isLength({ min: 8 })
+    .withMessage("Please input a password of minimum 8 Characters!")
     .isStrongPassword()
-    .withMessage("Your password is not strong enough!")
+    .withMessage("Your password is not strong enough!"),
+  body("oldPass")
+    .exists()
+    .withMessage("Old Password id required!")
     .isLength({ min: 8 })
     .withMessage("Please input a password of minimum 8 Characters!"),
-  body("oldPass").exists().withMessage("Old Password id required!"),
 ];

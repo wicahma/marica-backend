@@ -70,7 +70,7 @@ exports.getVideo = asyncHandler(async (req, res) => {
 
 // ANCHOR Create Video
 /*
-@Route /video?seriesID=seriesId
+@Route /video
 * Method : POST
 * Access : Admin
 * Body : videoURL, thumbnail, type
@@ -80,32 +80,31 @@ exports.getVideo = asyncHandler(async (req, res) => {
 
 exports.createVideo = asyncHandler(async (req, res) => {
   const {
-      videoURL,
-      thumbnail,
-      type,
-      // quizTimestamp,
-      // quizType,
-      // quiz,
-      // quizAttachmentData,
-      // quizAttachmentType,
-    } = {
-      ...req.body,
-    },
-    { seriesID } = req.query;
+    videoURL,
+    thumbnail,
+    type,
+    quizTimestamp,
+    quizType,
+    quiz,
+    quizAttachmentData,
+    quizAttachmentType,
+  } = {
+    ...req.body,
+  };
 
   const newVideo = new video({
     videoURL: videoURL,
     thumbnail: thumbnail,
     type: type,
-    // "miniQuiz.quizTimestamp": quizTimestamp,
-    // "miniQuiz.tipe": quizType,
-    // "miniQuiz.quiz": {
-    //   attachment: {
-    //     tipe: quizAttachmentType,
-    //     data: quizAttachmentData,
-    //   },
-    //   ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
-    // },
+    "miniQuiz.quizTimestamp": quizTimestamp,
+    "miniQuiz.tipe": quizType,
+    "miniQuiz.quiz": {
+      attachment: {
+        tipe: quizAttachmentType,
+        data: quizAttachmentData,
+      },
+      ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
+    },
   });
   try {
     const createdVideo = await newVideo.save();
@@ -146,11 +145,11 @@ exports.createVideo = asyncHandler(async (req, res) => {
 
 exports.updateVideo = asyncHandler(async (req, res) => {
   const {
-    // quizTimestamp,
-    // quizType,
-    // quiz,
-    // quizAttachmentType,
-    // quizAttachmentData,
+    quizTimestamp,
+    quizType,
+    quiz,
+    quizAttachmentType,
+    quizAttachmentData,
     thumbnail,
   } = req.body;
   const { id } = req.params;
@@ -159,15 +158,15 @@ exports.updateVideo = asyncHandler(async (req, res) => {
       id,
       {
         thumbnail: thumbnail,
-        // "miniQuiz.quizTimestamp": quizTimestamp,
-        // "miniQuiz.tipe": quizType,
-        // "miniQuiz.quiz": {
-        //   attachment: {
-        //     tipe: quizAttachmentType,
-        //     data: quizAttachmentData,
-        //   },
-        //   ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
-        //   },
+        "miniQuiz.quizTimestamp": quizTimestamp,
+        "miniQuiz.tipe": quizType,
+        "miniQuiz.quiz": {
+          attachment: {
+            tipe: quizAttachmentType,
+            data: quizAttachmentData,
+          },
+          ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
+        },
       },
       {
         new: true,

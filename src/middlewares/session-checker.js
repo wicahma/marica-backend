@@ -1,4 +1,10 @@
-exports.sessionChecker = (req, res, next) => {
+exports.sessionChecker = (req, res, next, status) => {
+  if (status) {
+    if (req.session.user.userType !== "admin") {
+      res.status(401);
+      throw new Error("Not Authorized, admin only!");
+    }
+  }
   if (req.session && req.session.user) {
     next();
   } else {

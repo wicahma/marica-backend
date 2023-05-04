@@ -18,10 +18,7 @@ const authJWT = asyncHandler(async (req, res, next) => {
         }
       req.session.user = await user
         .findById(decoded.id)
-        .select(
-          "-essentials.password -__v -createdAt -updatedAt -validated"
-        );
-        
+        .select("-essentials.password -__v -createdAt -updatedAt -validated");
     } catch (err) {
       if (!res.status) res.status(401);
       throw new Error(err);
@@ -36,7 +33,7 @@ const authJWT = asyncHandler(async (req, res, next) => {
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_CODE, {
-    expiresIn: "7d",
+    expiresIn: "2d",
   });
 };
 

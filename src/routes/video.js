@@ -10,11 +10,27 @@ const { sessionChecker } = require("../middlewares/session-checker");
 
 const router = require("express").Router();
 
-router.route("/").get(getVideo).post(createVideo);
+router
+  .route("/")
+  .get(authJWT, sessionChecker, getVideo)
+  .post(
+    authJWT,
+    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    createVideo
+  );
+
 router
   .route("/:id")
-  .put(authJWT, sessionChecker, updateVideo)
-  .delete(authJWT, sessionChecker, deleteVideo);
+  .put(
+    authJWT,
+    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    updateVideo
+  )
+  .delete(
+    authJWT,
+    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    deleteVideo
+  );
 
 router.route("/:id/like").put(authJWT, sessionChecker, likeVideo);
 
