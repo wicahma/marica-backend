@@ -10,7 +10,7 @@ const instagramPassport = () => {
         {
           clientID: process.env.INSTAGRAM_CLIENT_ID,
           clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-          callbackURL: "http://localhost:4000/api/v1/auth/instagram/callback",
+          callbackURL: "https://api.marica.id/api/v1/auth/instagram/callback",
           state: true,
         },
         function verify(accessToken, refreshToken, profile, cb) {
