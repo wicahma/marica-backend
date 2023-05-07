@@ -29,6 +29,7 @@ router.get(
   "/facebook",
   passport.authenticate("facebook", {
     scope: ["email", "public_profile"],
+    prompt: "select_account",
   })
 );
 
@@ -46,6 +47,7 @@ router.get(
   "/instagram",
   passport.authenticate("instagram", {
     scope: ["email", "public_profile"],
+    prompt: "select_account",
   })
 );
 
