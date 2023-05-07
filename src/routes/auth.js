@@ -28,8 +28,8 @@ router.get(
 router.get(
   "/facebook",
   passport.authenticate("facebook", {
-    scope: ["email", "public_profile"],
-    prompt: "select_account",
+    authType: "reauthenticate",
+    scope: ["public_profile", "email", "user_birthday"],
   })
 );
 
@@ -42,6 +42,15 @@ router.get(
   }
 );
 
+router.get("/facebook/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/api/v1/auth/profil");
+  });
+});
+
 //NOTE - Instagram Auth
 router.get(
   "/instagram",
@@ -53,7 +62,9 @@ router.get(
 
 router.get(
   "/instagram/callback",
-  passport.authenticate("instagram", { failureRedirect: "/instagram" }),
+  passport.authenticate("instagram", {
+    failureRedirect: "/api/v1/auth/profil",
+  }),
   function (req, res) {
     // Successful authentication, redirect home.
     res.redirect("/api/v1/auth/profil");
@@ -61,10 +72,19 @@ router.get(
 );
 
 //NOTE - Profil
-router.get("/profil", function (req, res, next) {
+router.get("/profil", (req, res, next) => {
   const session = req.session;
   console.log(session.passport);
   res.status(200).json({ session });
+});
+
+router.get("/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.redirect("/api/v1/auth/profil");
+  });
 });
 
 module.exports = router;
