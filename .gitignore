@@ -9,6 +9,9 @@
 # testing
 /coverage
 
+# credentials
+/src/credentials
+
 # production
 /build
 

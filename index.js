@@ -5,8 +5,13 @@ const cors = require("cors");
 const dbConnect = require("./src/configs/db-config");
 const { errorHandler } = require("./src/middlewares/error-handler");
 const session = require("express-session");
+const googlePassport = require("./src/configs/passports/google");
+const passport = require("passport");
+const facebookPassport = require("./src/configs/passports/facebook");
 
 dbConnect();
+googlePassport();
+facebookPassport();
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -27,14 +32,17 @@ app.use(
     cookie: { secure: false, maxAge: 1000 * 60 * 1 },
   })
 );
-app.use("/", (req, res, next) => {
-  console.log(req.session);
-  next();
-});
+app.use(passport.initialize());
+app.use(passport.session());
+// app.use("/", (req, res, next) => {
+//   console.log(req.session);
+//   next();
+// });
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 app.use(`${mainRoute}/series`, require("./src/routes/series"));
 app.use(`${mainRoute}/video`, require("./src/routes/video"));
 app.use(`${mainRoute}/payment`, require("./src/routes/payment"));
+app.use(`${mainRoute}/auth`, require("./src/routes/auth"));
 
 // Email validation route./src/routes/user-validation
 app.use(`/user`, require("./src/routes/user-validation"));

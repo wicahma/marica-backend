@@ -125,6 +125,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
         password: hashedPassword,
       },
       validated: false,
+      provider: "local",
     });
 
     const validationCode = generateValidation(
