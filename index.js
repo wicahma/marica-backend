@@ -8,10 +8,12 @@ const session = require("express-session");
 const googlePassport = require("./src/configs/passports/google");
 const passport = require("passport");
 const facebookPassport = require("./src/configs/passports/facebook");
+const instagramPassport = require("./src/configs/passports/instagram");
 
 dbConnect();
 googlePassport();
 facebookPassport();
+instagramPassport();
 const app = express();
 const port = process.env.PORT || 5000;
 
