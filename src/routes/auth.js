@@ -41,6 +41,22 @@ router.get(
   }
 );
 
+//NOTE - Instagram Auth
+router.get(
+  "/instagram",
+  passport.authenticate("instagram", {
+    scope: ["email", "public_profile"],
+  })
+);
+
+router.get(
+  "/instagram/callback",
+  passport.authenticate("instagram", { failureRedirect: "/instagram" }),
+  function (req, res) {
+    // Successful authentication, redirect home.
+    res.redirect("/api/v1/auth/profil");
+  }
+);
 
 //NOTE - Profil
 router.get("/profil", function (req, res, next) {

@@ -1,16 +1,16 @@
 const passport = require("passport");
 const { user } = require("../../models/user");
 const mongoose = require("mongoose");
-const FacebookStrategy = require("passport-facebook");
+const InstagramStrategy = require("passport-instagram");
 
-const facebookPassport = () => {
+const instagramPassport = () => {
   try {
     passport.use(
-      new FacebookStrategy(
+      new InstagramStrategy(
         {
-          clientID: process.env.FACEBOOK_CLIENT_ID,
-          clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-          callbackURL: "http://localhost:4000/api/v1/auth/facebook/callback",
+          clientID: process.env.INSTAGRAM_CLIENT_ID,
+          clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
+          callbackURL: "http://localhost:4000/api/v1/auth/instagram/callback",
           state: true,
         },
         function verify(accessToken, refreshToken, profile, cb) {
@@ -36,4 +36,4 @@ const facebookPassport = () => {
   }
 };
 
-module.exports = facebookPassport;
+module.exports = instagramPassport;
