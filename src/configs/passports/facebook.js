@@ -1,7 +1,7 @@
 const passport = require("passport");
 const { user } = require("../../models/user");
 const mongoose = require("mongoose");
-const FacebookStrategy = require("passport-facebook");
+const FacebookStrategy = require("passport-facebook").Strategy;
 
 const facebookPassport = () => {
   try {

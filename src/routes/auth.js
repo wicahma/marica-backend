@@ -54,10 +54,7 @@ router.get("/facebook/logout", (req, res, next) => {
 //NOTE - Instagram Auth
 router.get(
   "/instagram",
-  passport.authenticate("instagram", {
-    scope: ["email", "public_profile"],
-    prompt: "select_account",
-  })
+  passport.authenticate("instagram", { scope: ["user_profile", "user_media"] })
 );
 
 router.get(
