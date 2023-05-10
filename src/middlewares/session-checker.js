@@ -1,5 +1,5 @@
 exports.sessionChecker = (req, res, next, status) => {
-  if (status) {
+  if (status === "protected") {
     if (req.session.user.userType !== "admin") {
       res.status(401);
       throw new Error("Not Authorized, admin only!");

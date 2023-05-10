@@ -10,7 +10,7 @@ const facebookPassport = () => {
         {
           clientID: process.env.FACEBOOK_CLIENT_ID,
           clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-          callbackURL: "https://api.marica.id/api/v1/auth/facebook/callback",
+          callbackURL: "http://localhost:4000/api/v1/auth/facebook/callback",
           profileFields: ["id", "displayName", "photos", "email", "birthday"],
           enableProof: true,
         },

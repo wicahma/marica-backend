@@ -10,7 +10,7 @@ const googlePassport = () => {
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: "https://api.marica.id/api/v1/auth/google/callback",
+          callbackURL: "http://localhost:4000/api/v1/auth/google/callback",
         },
         function verify(accessToken, refreshToken, profile, cb) {
           console.log(profile);
