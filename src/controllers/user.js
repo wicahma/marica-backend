@@ -65,15 +65,6 @@ exports.loginUser = asyncHandler(async (req, res) => {
       throw new Error("Invalid User Credentials! hint: wrong username/email");
     } else if (await bcrypt.compare(password, userExist.essentials.password)) {
       const token = generateToken(userExist._doc._id.toString());
-      if (!userExist.validated)
-        return res.status(401).json({
-          type: "Error!",
-          message:
-            "User not validated, please validate your email first to login!",
-          data: {
-            email: userExist.email,
-          },
-        });
 
       return res.status(200).json({
         type: "OK!",
@@ -134,8 +125,14 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
     );
     const mailer = await sendEmail(
       createdUser.email,
-      `https://marica-backend.vercel.app/user/${validationCode}/validation`
+      createdUser.nama,
+      `https://api.marica.id/user/${validationCode}/validation`
     );
+
+    if (!mailer) {
+      res.status(500);
+      throw new Error("Email Failed to send!");
+    }
 
     res.status(201).json({
       type: "Created!",
@@ -143,7 +140,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
         "User Created, Please check your email for the verification link!",
       data: {
         ...createdUser._doc,
-        mail_status: mailer.response,
+        mail_status: mailer,
       },
     });
   } catch (err) {
@@ -189,7 +186,7 @@ exports.reLogin = asyncHandler(async (req, res) => {
   }
 });
 
-// ANCHOR Update User-email
+// ANCHOR Update User
 /*  
 @Route /user/:id
 * Method : PUT

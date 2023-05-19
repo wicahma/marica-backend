@@ -23,6 +23,7 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
   })
 );
+app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.set("trust proxy", 1);

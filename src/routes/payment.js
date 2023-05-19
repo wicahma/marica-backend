@@ -14,7 +14,8 @@ router
   .route("/balance")
   .get(
     authJWT,
-    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
     getBalance
   );
 
@@ -22,7 +23,8 @@ router
   .route("/")
   .get(
     authJWT,
-    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
     paymentRequest
   );
 

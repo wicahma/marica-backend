@@ -15,7 +15,8 @@ router
   .get(authJWT, sessionChecker, getVideo)
   .post(
     authJWT,
-    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
     createVideo
   );
 
@@ -23,12 +24,14 @@ router
   .route("/:id")
   .put(
     authJWT,
-    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
     updateVideo
   )
   .delete(
     authJWT,
-    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
     deleteVideo
   );
 

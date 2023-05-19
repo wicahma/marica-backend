@@ -42,13 +42,20 @@ router
   .route("/all")
   .get(
     authJWT,
-    (req, res, next) => sessionChecker(req, res, next, "protected"),
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
     getAllUsers
   );
 
 router
   .route("/password")
-  .put(updatePasswordValidator, authJWT, sessionChecker, updatePassword);
+  .put(
+    updatePasswordValidator,
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: true }),
+    updatePassword
+  );
 
 router.route("/logout").delete(authJWT, sessionChecker, userLogout);
 
@@ -57,9 +64,20 @@ router.route("/logout").delete(authJWT, sessionChecker, userLogout);
 router
   .route("/anak")
   .post(createAnakValidator, authJWT, sessionChecker, createUserAnak)
-  .put(updateAnakValidator, authJWT, sessionChecker, updateUserAnak)
+  .put(
+    updateAnakValidator,
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: true }),
+    updateUserAnak
+  )
   .get(getAnakValidator, authJWT, sessionChecker, getAnak)
-  .delete(authJWT, sessionChecker, deleteAnak);
+  .delete(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: true }),
+    deleteAnak
+  );
 
 router
   .route("/anak/:idAnak/like-history")

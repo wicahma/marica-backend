@@ -18,7 +18,7 @@ const authJWT = asyncHandler(async (req, res, next) => {
         }
       req.session.user = await user
         .findById(decoded.id)
-        .select("-essentials.password -__v -createdAt -updatedAt -validated");
+        .select("-essentials.password -__v -createdAt -updatedAt");
     } catch (err) {
       if (!res.status) res.status(401);
       throw new Error(err);
