@@ -41,32 +41,22 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
   /*
   - EWALLET
       > DANA
-      > OVO
-      > LINKAJA
       > ASTRAPAY
-      > JENIUSPAY
-      > SHOPEEPAY 
-  - DIRECT_DEBIT 
-      > BRI
-      > MANDIRI
-  - CARD (Mastercard Dll)
+      > OVO (On Activation Request)
+      > LINKAJA (On Activation Request)
+      > SHOPEEPAY (On Activation Request)
   - VIRTUAL_ACCOUNT 
-      > BCA
       > BSI
       > BJB
-      > CIMB
       > SAHABAT_SAMPOERNA
-      > ARTAJASA
+      > PERMATA
       > BRI
       > BNI
       > MANDIRI
-      > PERMATA
+      > BCA (Need Website)
   - OVER_THE_COUNTER
-      > ALFAMART
-      > INDOMARET
-  - QR_CODE
-      > DANA
-      > LINKAJA
+      > ALFAMART (Need Website)
+  - QR_CODE (QRIS)
   */
   const r = new PaymentRequest({});
   try {
@@ -153,7 +143,7 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
 //   if (!phone) {
 //     res.status(400);
 //     throw {
-//       name: "Validation Error",
+//       type: "Validation Error",
 //       message: "You must add a phone number to your account first!",
 //       stack: new Error().stack,
 //     };

@@ -215,9 +215,12 @@ exports.deleteVideo = asyncHandler(async (req, res) => {
       throw new Error("Video delete failed, please check the ID!");
     }
     res.status(200).json({
+      type: "Success!",
       message: "Video deleted successfully!",
-      isInSeries: isInSeries.matchedCount === 1 ? true : false,
-      id: deletedVideo._id,
+      data: {
+        isInSeries: isInSeries.matchedCount === 1 ? true : false,
+        id: deletedVideo._id,
+      },
     });
   } catch (err) {
     if (!res.status) res.status(500);
@@ -313,7 +316,7 @@ exports.likeVideo = asyncHandler(async (req, res) => {
 
     if (like.video.matchedCount === 1 && like.user.matchedCount === 1) {
       return res.status(201).json({
-        name: "Success!",
+        type: "Success!",
         message: likeMessage,
         data: like,
       });

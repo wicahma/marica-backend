@@ -43,7 +43,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
     console.log(isError);
     res.status(400);
     throw {
-      name: "Validation Error",
+      type: "Validation Error",
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
@@ -67,7 +67,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
       const token = generateToken(userExist._doc._id.toString());
       if (!userExist.validated)
         return res.status(401).json({
-          name: "Error!",
+          type: "Error!",
           message:
             "User not validated, please validate your email first to login!",
           data: {
@@ -76,7 +76,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
         });
 
       return res.status(200).json({
-        name: "OK!",
+        type: "OK!",
         message: "Login Success!",
         data: {
           ...userExist._doc,
@@ -106,7 +106,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
   if (!isError.isEmpty()) {
     res.status(400);
     throw {
-      name: "Validation Error",
+      type: "Validation Error",
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
@@ -138,12 +138,11 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
     );
 
     res.status(201).json({
-      name: "Created!",
+      type: "Created!",
       message:
         "User Created, Please check your email for the verification link!",
       data: {
-        id: createdUser._doc._id,
-        username: createdUser._doc.essentials.username,
+        ...createdUser._doc,
         mail_status: mailer.response,
       },
     });
@@ -174,7 +173,7 @@ exports.reLogin = asyncHandler(async (req, res) => {
     const userExist = await user.findById(_id);
     if (userExist) {
       res.status(200).json({
-        name: "OK!",
+        type: "OK!",
         message: "User Found!",
         data: {
           ...userExist._doc,
@@ -207,7 +206,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
   if (!isError.isEmpty()) {
     res.status(400);
     throw {
-      name: "Validation Error",
+      type: "Validation Error",
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
@@ -236,7 +235,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
     if (userExist) {
       res.status(200).json({
-        name: "OK!",
+        type: "OK!",
         message: "User Updated!",
       });
     } else {
@@ -264,7 +263,7 @@ exports.updatePassword = asyncHandler(async (req, res) => {
   if (!isError.isEmpty()) {
     res.status(400);
     throw {
-      name: "Validation Error",
+      type: "Validation Error",
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
@@ -289,7 +288,7 @@ exports.updatePassword = asyncHandler(async (req, res) => {
         }
       );
       res.status(200).json({
-        name: "OK!",
+        type: "OK!",
         message: "Password updated succesfully!",
       });
     }
@@ -322,7 +321,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
     if (userExist) {
       req.session.destroy();
       res.status(200).json({
-        name: "OK!",
+        type: "OK!",
         message: "User deleted successfully!",
       });
     } else {
@@ -347,10 +346,9 @@ exports.deleteUser = asyncHandler(async (req, res) => {
 exports.userLogout = asyncHandler(async (req, res) => {
   req.session.destroy();
   res.status(200).json({
-    name: "OK!",
+    type: "OK!",
     message: "User logged out successfully!",
   });
-
 });
 
 // ANCHOR Create One User Anak
@@ -368,7 +366,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
   if (!isError.isEmpty()) {
     res.status(400);
     throw {
-      name: "Validation Error",
+      type: "Validation Error",
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
@@ -378,8 +376,15 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
     nama: req.body.nama,
     rentangUsia: req.body.usia,
     poin: 0,
+    imageID: "",
+    likes: [],
     character: {
       gender: req.body.gender || "male",
+      baju: [],
+      celana: [],
+      aksesorisTangan: [],
+      aksesorisKepala: [],
+      aksesorisMuka: [],
     },
   };
 
@@ -396,7 +401,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
         },
       });
       return res.status(200).json({
-        name: "OK!",
+        type: "OK!",
         message: "Data anak created!",
         data: { ...newAnak },
       });
@@ -430,7 +435,7 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
   if (!isError.isEmpty()) {
     res.status(400);
     throw {
-      name: "Validation Error",
+      type: "Validation Error",
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
@@ -438,8 +443,8 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
 
   const dataAnak = {
     $set: {
-      "essentials.dataAnak.$.lahir": req.body.lahir,
-      "essentials.dataAnak.$.imageID": req.body.image,
+      "essentials.dataAnak.$.rentangUsia": req.body.usia,
+      "essentials.dataAnak.$.nama": req.body.nama,
       "essentials.dataAnak.$.character": req.body.character,
     },
   };
@@ -472,7 +477,7 @@ exports.updateUserAnak = asyncHandler(async (req, res) => {
       );
       if (updatedUser.modifiedCount > 0) {
         return res.status(200).json({
-          name: "OK!",
+          type: "OK!",
           message: `Data anak updated! ${updatedUser.modifiedCount} Row Updated!`,
         });
       }
@@ -506,7 +511,7 @@ exports.getAllAnak = asyncHandler(async (req, res) => {
     const familyExist = await user.findById(_id);
     if (familyExist && familyExist.userType === "orangtua") {
       res.status(200).json({
-        name: "OK!",
+        type: "OK!",
         message: "Data anak fetched!",
         data: familyExist.essentials.dataAnak,
       });
@@ -563,7 +568,11 @@ exports.getAnak = asyncHandler(async (req, res) => {
     const familyExist = familys[0];
 
     if (familyExist && familyExist.userType === "orangtua")
-      res.status(201).json(familyExist.essentials.dataAnak);
+      res.status(201).json({
+        type: "OK!",
+        message: "Data anak fetched!",
+        data: familyExist.essentials.dataAnak,
+      });
 
     res.status(400);
     throw new Error(
@@ -613,7 +622,7 @@ exports.deleteAnak = asyncHandler(async (req, res) => {
 
       if (isUpdated.modifiedCount) {
         return res.status(201).json({
-          name: "OK!",
+          type: "OK!",
           message: "Anak deleted!",
         });
       }
@@ -632,7 +641,7 @@ exports.deleteAnak = asyncHandler(async (req, res) => {
 
 // ANCHOR Get Liked Video
 /*
-@Route /user/liked-video/:idAnak
+@Route /user/anak/:idAnak/like-history
 * Method : GET
 * Access : Orangtua, Admin
 * Session: ID Orangtua
@@ -642,6 +651,8 @@ exports.deleteAnak = asyncHandler(async (req, res) => {
 exports.getLikedVideo = asyncHandler(async (req, res) => {
   const { _id } = req.session.user,
     { idAnak } = req.params;
+
+  console.log(idAnak, _id);
 
   try {
     const likeHistory = await user.aggregate([

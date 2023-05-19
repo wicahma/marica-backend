@@ -24,6 +24,7 @@ const {
   createOrangtuaValidator,
   updatePasswordValidator,
   updateValidator,
+  updateAnakValidator,
 } = require("./validator/user");
 const { sessionChecker } = require("../middlewares/session-checker");
 
@@ -56,7 +57,7 @@ router.route("/logout").delete(authJWT, sessionChecker, userLogout);
 router
   .route("/anak")
   .post(createAnakValidator, authJWT, sessionChecker, createUserAnak)
-  .put(authJWT, sessionChecker, updateUserAnak)
+  .put(updateAnakValidator, authJWT, sessionChecker, updateUserAnak)
   .get(getAnakValidator, authJWT, sessionChecker, getAnak)
   .delete(authJWT, sessionChecker, deleteAnak);
 

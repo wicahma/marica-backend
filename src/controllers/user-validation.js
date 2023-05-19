@@ -31,7 +31,7 @@ exports.renewValidation = asyncHandler(async (req, res) => {
   if (!isError.isEmpty()) {
     res.status(400);
     throw {
-      name: "Validation Error",
+      type: "Validation Error",
       message: isError.errors,
     };
   }

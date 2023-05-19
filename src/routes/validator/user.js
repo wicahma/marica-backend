@@ -39,6 +39,19 @@ exports.createAnakValidator = [
     .withMessage("Usia must be a string!"),
 ];
 
+exports.updateAnakValidator = [
+  body("nama")
+    .isString()
+    .withMessage("Nama must be a string!")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Nama must be between 2 and 100 characters!"),
+  body("usia")
+    .isString()
+    .withMessage("Usia must in string range '0-4' or '5-8' !")
+    .if((value, {}) => (value === "0-4" || value === "5-8" ? true : false)),
+  body("character").isObject().withMessage("Character must in object data"),
+];
+
 exports.getAnakValidator = [
   param("id")
     .exists()

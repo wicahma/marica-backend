@@ -51,7 +51,6 @@ const anak = new mongoose.Schema(
       aksesorisKepala: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
       aksesorisMuka: [{ type: mongoose.Schema.Types.ObjectId, ref: "asset" }],
     },
-    listCourse: [{ type: mongoose.Schema.Types.ObjectId, ref: "course" }],
   },
   {
     timestamps: true,
