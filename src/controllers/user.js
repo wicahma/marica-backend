@@ -130,6 +130,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
     );
 
     if (!mailer) {
+      await user.findByIdAndDelete(createdUser._id);
       res.status(500);
       throw new Error("Email Failed to send!");
     }
@@ -367,7 +368,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
-  }
+  } 
 
   const newAnak = {
     nama: req.body.nama,

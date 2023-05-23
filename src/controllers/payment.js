@@ -66,11 +66,11 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
         currency: "IDR",
         payment_method: {
           type: "VIRTUAL_ACCOUNT",
-          ewallet: {
-            channel_code: "SHOPEEPAY",
+          virtual_account: {
+            channel_code: "BRI",
             channel_properties: {
-              success_return_url: "https://redirect.me/goodstuff",
-              failure_return_url: "https://redirect.me/badstuff",
+              customer_name: "Teguh Dwi Cahya Kusuma",
+              expires_at: "2023-12-12T00:00:00+07:00",
             },
           },
           reusability: "ONE_TIME_USE",
@@ -78,11 +78,18 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
       })
       .then((data) => {
         res.status(200).json({ data });
+      })
+      .catch((err) => {
+        throw {
+          status: err.status,
+          code: err.code,
+          message: err.message,
+        };
       });
   } catch (err) {
     console.log(err);
     if (!res.status) res.status(500);
-    throw new Error(err);
+    throw new Error({ ...err });
   }
 });
 
@@ -246,3 +253,62 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
 //     throw new Error(err);
 //   }
 // });
+
+//SECTION - Xendit Callback strategy
+
+//NOTE - Check FVA Callback
+exports.checkFVA = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
+
+//NOTE - Check Retails Callback
+exports.checkRetails = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
+
+//NOTE - Check Debit Callback
+
+exports.checkDirectDebit = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
+
+//NOTE - Check Payment Request Callback
+exports.checkPaymentRequest = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
+
+//NOTE - Check QR Code Callback
+exports.checkQRCode = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
+
+//NOTE - Check Invoice Callback
+exports.checkInvoice = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
+
+//NOTE - Check Payment Method Callback
+exports.checkPaymentMethod = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
+
+//NOTE - Check Ewallet Callback
+exports.checkEWallet = expressAsyncHandler(async (req, res) => {
+  const url = req.url.split("/callback/")[1];
+  const data = req.body;
+  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+});
