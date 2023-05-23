@@ -82,4 +82,9 @@ router.route("/callback/payment-method").post(checkPaymentMethod);
 //NOTE - Ewallet Callback
 router.route("/callback/e-wallet").post(checkEWallet);
 
+//NOTE - Disbursment Callback
+router.route("callback/disbursment/sent").post(checkDisbursment);
+router.route("callback/disbursment/batch-sent").post(checkDisbursment);
+router.route("callback/disbursment/payout-v2").post(checkDisbursment);
+
 module.exports = router;
