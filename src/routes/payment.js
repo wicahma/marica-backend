@@ -13,6 +13,7 @@ const {
   checkInvoice,
   checkPaymentMethod,
   checkEWallet,
+  checkDisbursment,
 } = require("../controllers/payment");
 const { authJWT } = require("../middlewares/auth");
 const { sessionChecker } = require("../middlewares/session-checker");
