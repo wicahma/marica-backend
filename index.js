@@ -37,10 +37,10 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-// app.use("/", (req, res, next) => {
-//   console.log(req.session);
-//   next();
-// });
+app.use("/", (req, res, next) => {
+  console.log(req.session);
+  next();
+});
 app.use(`${mainRoute}/user`, require("./src/routes/user"));
 app.use(`${mainRoute}/series`, require("./src/routes/series"));
 app.use(`${mainRoute}/video`, require("./src/routes/video"));

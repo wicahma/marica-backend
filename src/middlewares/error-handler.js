@@ -6,8 +6,7 @@ const errorHandler = (err, req, res, next) => {
   res.json({
     type: err.name ? err.name : "Middleware Error!",
     message: err.message,
-    stack:
-      process.env.NODE_ENV === "production" ? process.env.NODE_ENV : err.stack,
+    stack: process.env.NODE_ENV === "production" ? null : err.stack,
   });
 };
 

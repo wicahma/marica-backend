@@ -68,7 +68,7 @@ router
     updateAnakValidator,
     authJWT,
     (req, res, next) =>
-      sessionChecker(req, res, next, { admin: false, validated: true }),
+      sessionChecker(req, res, next, { admin: false, validated: false }),
     updateUserAnak
   )
   .get(getAnakValidator, authJWT, sessionChecker, getAnak)

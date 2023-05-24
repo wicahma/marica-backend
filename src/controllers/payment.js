@@ -36,7 +36,7 @@ exports.getBalance = expressAsyncHandler(async (req, res) => {
 //NOTE - documentation link: https://developers.xendit.co/api-reference/?javascript#payment-object
 exports.paymentRequest = expressAsyncHandler(async (req, res) => {
   const { PaymentRequest } = xen;
-  const { amount, paymentType, paymentChannel } = req.body;
+  const { paymentType, paymentChannel } = req.body;
   //NOTE - payment_method_type
   /*
   - EWALLET
@@ -58,38 +58,67 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
       > ALFAMART (Need Website)
   - QR_CODE (QRIS)
   */
-  const r = new PaymentRequest({});
+  const main_type = "EWALLET",
+    name = "Teguh Dwi Cahya Kusuma",
+    mobile_number = "085751080434",
+    amount = 10000,
+    success_return_url = "https://marica.id/success",
+    failure_return_url = "https://marica.id/failure",
+    expires_at = Date.now() + 86400000,
+    va_channel_code = "BNI",
+    qr_channel_code = "DANA",
+    currency = "IDR",
+    country="ID",
+    ewallet_channel_code = "SHOPEEPAY",
+    r = new PaymentRequest({});
   try {
     await r
       .createPaymentRequest({
-        amount: 1500,
-        currency: "IDR",
-        payment_method: {
-          type: "VIRTUAL_ACCOUNT",
-          virtual_account: {
-            channel_code: "BRI",
-            channel_properties: {
-              customer_name: "Teguh Dwi Cahya Kusuma",
-              expires_at: "2023-12-12T00:00:00+07:00",
-            },
+        amount: amount,
+        currency: currency,
+        reusability: "ONE_TIME_USE",
+        type: main_type,
+        description: "Payment untuk fitur berlangganan pengguna",
+        country: country,
+        ewallet: {
+          channel_code: ewallet_channel_code,
+          amount: amount,
+          channel_properties: {
+            mobile_number: mobile_number,
+            success_return_url: success_return_url,
+            failure_return_url: failure_return_url,
           },
-          reusability: "ONE_TIME_USE",
+        },
+        // over_the_counter: {
+        //   channel_code: "ALFAMART",
+        //   currency: currency,
+        //   channel_properties: {
+        //     customer_name: name,
+        //     expires_at: expires_at,
+        //   },
+        // },
+        // virtual_account: {
+        //   channel_code: va_channel_code,
+        //   channel_properties: {
+        //     customer_name: name,
+        //     expires_at: expires_at,
+        //   },
+        // },
+        qr_code: {
+          channel_code: qr_channel_code,
+          currency: currency,
         },
       })
       .then((data) => {
         res.status(200).json({ data });
       })
       .catch((err) => {
-        throw {
-          status: err.status,
-          code: err.code,
-          message: err.message,
-        };
+        throw new Error(JSON.stringify(err.message));
       });
   } catch (err) {
     console.log(err);
     if (!res.status) res.status(500);
-    throw new Error({ ...err });
+    throw new Error(err);
   }
 });
 
@@ -301,9 +330,26 @@ exports.checkInvoice = expressAsyncHandler(async (req, res) => {
 
 //NOTE - Check Payment Method Callback
 exports.checkPaymentMethod = expressAsyncHandler(async (req, res) => {
-  const url = req.url.split("/callback/")[1];
-  const data = req.body;
-  res.status(200).json({ status: "Success!", messagePath: url, data: data });
+  const url = req.url.split("/callback/")[1],
+    data = req.body,
+    {
+      id,
+      data: {
+        type,
+        status,
+        created,
+        reference_id,
+        reusability,
+        virtual_account,
+        ewallet,
+        card,
+        qr_code,
+      },
+    } = data;
+
+  res
+    .status(200)
+    .json({ status: "Success!", messagePath: url, data: { xendit: data } });
 });
 
 //NOTE - Check Ewallet Callback
