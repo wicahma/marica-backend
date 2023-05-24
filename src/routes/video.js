@@ -35,6 +35,13 @@ router
     deleteVideo
   );
 
-router.route("/:id/like").put(authJWT, sessionChecker, likeVideo);
+router
+  .route("/:id/like")
+  .put(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: true }),
+    likeVideo
+  );
 
 module.exports = router;

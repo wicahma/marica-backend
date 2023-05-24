@@ -361,6 +361,7 @@ exports.userLogout = asyncHandler(async (req, res) => {
 exports.createUserAnak = asyncHandler(async (req, res) => {
   const { _id } = req.session.user;
   const isError = validationResult(req);
+  console.log("programnya jalan");
   if (!isError.isEmpty()) {
     res.status(400);
     throw {
@@ -368,7 +369,7 @@ exports.createUserAnak = asyncHandler(async (req, res) => {
       message: isError.errors[0].msg,
       stack: isError.errors,
     };
-  } 
+  }
 
   const newAnak = {
     nama: req.body.nama,

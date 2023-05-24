@@ -33,10 +33,28 @@ router.route("/login").post(loginValidator, loginUser);
 router
   .route("/")
   .post(createOrangtuaValidator, createUserOrangtua)
-  .put(updateValidator, authJWT, sessionChecker, updateUser)
-  .delete(authJWT, sessionChecker, deleteUser);
+  .put(
+    updateValidator,
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: true }),
+    updateUser
+  )
+  .delete(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: false }),
+    deleteUser
+  );
 
-router.route("/re-login").get(authJWT, sessionChecker, reLogin);
+router
+  .route("/re-login")
+  .get(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: false }),
+    reLogin
+  );
 
 router
   .route("/all")
@@ -57,18 +75,31 @@ router
     updatePassword
   );
 
-router.route("/logout").delete(authJWT, sessionChecker, userLogout);
+router
+  .route("/logout")
+  .delete(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: false }),
+    userLogout
+  );
 
 //NOTE - Anak Routes
 
 router
   .route("/anak")
-  .post(createAnakValidator, authJWT, sessionChecker, createUserAnak)
+  .post(
+    createAnakValidator,
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: false }),
+    createUserAnak
+  )
   .put(
     updateAnakValidator,
     authJWT,
     (req, res, next) =>
-      sessionChecker(req, res, next, { admin: false, validated: false }),
+      sessionChecker(req, res, next, { admin: false, validated: true }),
     updateUserAnak
   )
   .get(getAnakValidator, authJWT, sessionChecker, getAnak)
