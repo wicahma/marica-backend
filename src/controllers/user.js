@@ -128,6 +128,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
       createdUser.nama,
       `https://api.marica.id/user/${validationCode}/validation`
     );
+    const token = generateToken(createdUser._doc._id.toString());
 
     if (!mailer) {
       await user.findByIdAndDelete(createdUser._id);
@@ -141,6 +142,7 @@ exports.createUserOrangtua = asyncHandler(async (req, res) => {
         "User Created, Please check your email for the verification link!",
       data: {
         ...createdUser._doc,
+        token: token,
         mail_status: mailer,
       },
     });
