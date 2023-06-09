@@ -112,8 +112,20 @@ router
 
 router
   .route("/anak/:idAnak/like-history")
-  .get(authJWT, sessionChecker, getLikedVideo);
+  .get(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: true }),
+    getLikedVideo
+  );
 
-router.route("/all-anak").get(authJWT, sessionChecker, getAllAnak);
+router
+  .route("/all-anak")
+  .get(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: true }),
+    getAllAnak
+  );
 
 module.exports = router;

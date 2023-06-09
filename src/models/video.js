@@ -26,11 +26,6 @@ const videoSchema = new mongoose.Schema({
     required: [true, "Please add the video type!"],
     default: "paid",
   },
-  active: {
-    type: Boolean,
-    required: [true, "Please add the active status!"],
-    default: false,
-  },
   miniQuiz: {
     tipe: {
       type: String,

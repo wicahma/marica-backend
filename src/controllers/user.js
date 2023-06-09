@@ -217,6 +217,8 @@ exports.updateUser = asyncHandler(async (req, res) => {
     imageID: req.body.imageID,
     lahir: req.body.lahir,
     "essentials.username": req.body.username,
+    "essentials.phone": req.body.phone,
+    "essentials.address": req.body.address,
   };
 
   try {

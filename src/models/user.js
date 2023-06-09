@@ -107,7 +107,7 @@ const userSchema = mongoose.Schema(
       enum: ["local", "google", "facebook"],
       required: [true, "Please add your provider"],
       immutable: [true, "Provider cannot be changed"],
-    }
+    },
   },
   {
     timestamps: true,
