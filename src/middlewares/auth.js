@@ -26,7 +26,7 @@ const authJWT = asyncHandler(async (req, res, next) => {
   }
   if (!token) {
     res.status(401);
-    throw new Error("Not Authorized, no token");
+    throw new Error("Not Authorized, no token you dumbass");
   }
   return next();
 });

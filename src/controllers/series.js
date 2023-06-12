@@ -2,6 +2,21 @@ const asyncHandler = require("express-async-handler");
 const series = require("../models/series");
 const video = require("../models/video");
 
+//ANCHOR - Get All Series
+exports.getAllSeries = asyncHandler(async (req, res) => {
+  try {
+    const Series = await series.find({}).exec();
+    res.status(200).json({
+      type: "Success!",
+      message: "Series fetched successfully!",
+      data: Series,
+    });
+  } catch (err) {
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
 // ANCHOR Get Series & One series
 /*  
 @Route /series?id=

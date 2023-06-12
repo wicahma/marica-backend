@@ -4,6 +4,50 @@ const video = require("../models/video");
 const { user } = require("../models/user");
 const { default: mongoose } = require("mongoose");
 
+//ANCHOR - Get All Video
+exports.getAllVideo = asyncHandler(async (req, res) => {
+  try {
+    const Video = await video
+      .aggregate([
+        {
+          $project: {
+            like: {
+              $size: {
+                $filter: {
+                  input: "$vote",
+                  as: "vote",
+                  cond: { $eq: ["$$vote.type", "like"] },
+                },
+              },
+            },
+            dislike: {
+              $size: {
+                $filter: {
+                  input: "$vote",
+                  as: "vote",
+                  cond: { $eq: ["$$vote.type", "dislike"] },
+                },
+              },
+            },
+            videoURL: 1,
+            thumbnail: 1,
+            type: 1,
+            active: 1,
+          },
+        },
+      ])
+      .exec();
+    res.status(200).json({
+      type: "Success!",
+      message: "Video fetched successfully!",
+      data: Video,
+    });
+  } catch (err) {
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
 // ANCHOR Get Videos & One Video
 /*
 @Route /video?id=videoId
@@ -238,6 +282,7 @@ exports.likeVideo = asyncHandler(async (req, res) => {
 
   try {
     let likeOperator,
+      initOperator,
       likeMessage,
       likeType,
       userOperator = {
@@ -245,24 +290,48 @@ exports.likeVideo = asyncHandler(async (req, res) => {
           "essentials.dataAnak.$.like": new mongoose.Types.ObjectId(id),
         },
       };
+    // NOTE - find one video that has same
     const hasLiked = await video.findOne({
-      _id: id,
+      _id: new mongoose.Types.ObjectId(id),
       "vote._id": new mongoose.Types.ObjectId(idAnak),
     });
 
-    console.log(hasLiked);
+    // NOTE - filter if same data type is exist
+    const typeHasLiked =
+      hasLiked?.vote.filter(
+        (data) => data.type === type && data._id.toString() === idAnak
+      ) ?? [];
+
+    console.log("Tipe Like - ", typeHasLiked);
+
+    // NOTE - Check if same data type is exist
+    if (typeHasLiked.length !== 0 && type) {
+      let message;
+      typeHasLiked.length > 1
+        ? (message = `Data is already ${typeHasLiked[0].type}d, operation aborted (btw there is a doubled data in your liked video, bug exist goes brrrr)!`)
+        : (message = `Data is already ${typeHasLiked[0].type}d, operation aborted!`);
+      return res.status(200).json({
+        type: `Is ${typeHasLiked[0].type}d!`,
+        message: message,
+        data: typeHasLiked,
+      });
+    }
 
     if (!type && hasLiked) {
       likeOperator = {
         $pull: { vote: { _id: new mongoose.Types.ObjectId(idAnak) } },
       };
-      console.log("jalan");
       likeType = "unlike";
       likeMessage = "Video unliked successfully!";
     } else {
+      initOperator = {
+        $pull: { vote: { _id: new mongoose.Types.ObjectId(idAnak) } },
+      };
       if (type === "dislike") {
+        // hasLiked.vote.length === 0;
+
         likeOperator = {
-          $set: {
+          $push: {
             vote: { _id: new mongoose.Types.ObjectId(idAnak), type: "dislike" },
           },
         };
@@ -270,7 +339,7 @@ exports.likeVideo = asyncHandler(async (req, res) => {
         likeMessage = "Video disliked successfully!";
       } else if (type === "like") {
         likeOperator = {
-          $set: {
+          $push: {
             vote: { _id: new mongoose.Types.ObjectId(idAnak), type: "like" },
           },
         };
@@ -289,13 +358,23 @@ exports.likeVideo = asyncHandler(async (req, res) => {
         {
           _id: id,
         },
-        likeOperator,
+        initOperator,
         {
           new: true,
           arrayFilters: [{ "likes._id": idAnak }],
         }
       )
       .then(async (likeData) => {
+        const like = await video.updateOne(
+          {
+            _id: id,
+          },
+          likeOperator,
+          {
+            new: true,
+            arrayFilters: [{ "likes._id": idAnak }],
+          }
+        );
         const userLike = await user.updateOne(
           {
             _id: new mongoose.Types.ObjectId(_id),
@@ -311,10 +390,18 @@ exports.likeVideo = asyncHandler(async (req, res) => {
             ],
           }
         );
-        return { video: { ...likeData }, user: { ...userLike } };
+        return {
+          initVideo: { ...likeData },
+          video: { ...like },
+          user: { ...userLike },
+        };
       });
 
-    if (like.video.matchedCount === 1 && like.user.matchedCount === 1) {
+    if (
+      like.video.matchedCount === 1 &&
+      like.user.matchedCount === 1 &&
+      like.initVideo.matchedCount === 1
+    ) {
       return res.status(201).json({
         type: "Success!",
         message: likeMessage,
@@ -323,7 +410,9 @@ exports.likeVideo = asyncHandler(async (req, res) => {
     }
 
     res.status(400);
-    throw new Error("Invalid Data Input! hint: No video found!");
+    throw new Error(
+      "Operation Invalid! hint: No video found / maybe you trying to unlike, but there is no like or dislike data!"
+    );
   } catch (err) {
     console.log(err);
     if (!res.status) res.status(500);

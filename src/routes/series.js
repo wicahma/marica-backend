@@ -7,6 +7,7 @@ const {
   getSeries,
   updateSeries,
   deleteSeries,
+  getAllSeries,
 } = require("../controllers/series");
 const { sessionChecker } = require("../middlewares/session-checker");
 const {
@@ -16,12 +17,43 @@ const {
 
 router
   .route("/")
-  .get(authJWT, sessionChecker, getSeries)
-  .post(createSeriesValidator, authJWT, sessionChecker, createSeries);
+  .get(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: false, validated: false }),
+    getSeries
+  )
+  .post(
+    createSeriesValidator,
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
+    createSeries
+  );
+
+router
+  .route("/all")
+  .get(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
+    getAllSeries
+  );
 
 router
   .route("/:id")
-  .put(updateSeriesValidator, authJWT, sessionChecker, updateSeries)
-  .delete(authJWT, sessionChecker, deleteSeries);
+  .put(
+    updateSeriesValidator,
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
+    updateSeries
+  )
+  .delete(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
+    deleteSeries
+  );
 
 module.exports = router;

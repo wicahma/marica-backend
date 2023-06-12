@@ -21,7 +21,11 @@ const jwt = require("jsonwebtoken");
 exports.getAllUsers = asyncHandler(async (req, res) => {
   try {
     const users = await user.find();
-    res.status(200).json(users);
+    res.status(200).json({
+      type: "Success!",
+      message: "Users fetched successfully!",
+      data: users,
+    });
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);
@@ -512,7 +516,7 @@ exports.getAllAnak = asyncHandler(async (req, res) => {
 
   try {
     const familyExist = await user.findById(_id);
-    if (familyExist && familyExist.userType === "orangtua") {
+    if (familyExist && familyExist.essentials.dataAnak !== undefined) {
       res.status(200).json({
         type: "OK!",
         message: "Data anak fetched!",
