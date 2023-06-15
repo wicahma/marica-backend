@@ -3,6 +3,7 @@ const series = require("../models/series");
 const video = require("../models/video");
 const { user } = require("../models/user");
 const { default: mongoose } = require("mongoose");
+const { deleteFile } = require("../middlewares/multer");
 
 //ANCHOR - Get All Video
 exports.getAllVideo = asyncHandler(async (req, res) => {
@@ -33,6 +34,8 @@ exports.getAllVideo = asyncHandler(async (req, res) => {
             thumbnail: 1,
             type: 1,
             active: 1,
+            title: 1,
+            description: 1,
           },
         },
       ])
@@ -125,7 +128,8 @@ exports.getVideo = asyncHandler(async (req, res) => {
 exports.createVideo = asyncHandler(async (req, res) => {
   const {
     videoURL,
-    thumbnail,
+    title,
+    description,
     type,
     quizTimestamp,
     quizType,
@@ -136,42 +140,132 @@ exports.createVideo = asyncHandler(async (req, res) => {
     ...req.body,
   };
 
-  const newVideo = new video({
-    videoURL: videoURL,
-    thumbnail: thumbnail,
-    type: type,
-    "miniQuiz.quizTimestamp": quizTimestamp,
-    "miniQuiz.tipe": quizType,
-    "miniQuiz.quiz": {
-      attachment: {
-        tipe: quizAttachmentType,
-        data: quizAttachmentData,
-      },
-      ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
-    },
-  });
   try {
+    const newVideo = new video({
+      videoURL: videoURL,
+      thumbnail: req.file.filename,
+      title: title,
+      description: description,
+      type: type,
+      "miniQuiz.quizTimestamp": quizTimestamp,
+      "miniQuiz.tipe": quizType,
+      "miniQuiz.quiz": {
+        attachment: {
+          tipe: quizAttachmentType,
+          data: quizAttachmentData,
+        },
+        // ...(quiz && typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
+      },
+    });
+    if (!req.file) {
+      res.status(400);
+      throw new Error("File tidak terinput!");
+    }
+
     const createdVideo = await newVideo.save();
 
     if (!createdVideo) {
+      deleteFile(req.file.path);
       res.status(500);
       throw new Error("Video creation failed, internal server error!");
     }
-    // if (seriesID) {
-    //   const seriesExist = await series.findById(seriesID);
-
-    //   if (!seriesExist) {
-    //     res.status(400);
-    //     throw new Error("Invalid Series Credentials!");
-    //   }
-
-    //   seriesExist.dataVideo.push(createdVideo._id);
-    //   await seriesExist.save();
-    // }
 
     res.status(201).json({
       message: "Video created successfully!",
       id: createdVideo._id,
+    });
+  } catch (err) {
+    deleteFile(req.file.path);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Update Image
+/*
+@Route /video/image/:id
+* Method : PUT
+* Access : Admin
+* Body : videoURL, thumbnail, quizTimestamp, quizType, quiz, quizAttachmentType, quizAttachmentData
+*/
+
+exports.updateImageVideo = asyncHandler(async (req, res) => {
+  try {
+    if (!req.file) {
+      res.status(400);
+      throw new Error("File tidak terinput!");
+    }
+
+    const findVideo = await video.findById(req.params.id);
+
+    const updatedVideo = await video.findByIdAndUpdate(
+      req.params.id,
+      {
+        thumbnail: req.file.filename,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedVideo) {
+      deleteFile(req.file.path);
+      res.status(500);
+      throw new Error("Video update failed, internal server error!");
+    }
+
+    req.file &&
+      deleteFile(`${__dirname}/../../public/images/${findVideo.thumbnail}`);
+
+    res.status(200).json({
+      message: "Data image updated successfully!",
+      id: updatedVideo._id,
+    });
+  } catch (err) {
+    deleteFile(req.file.path);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Update Video Status
+/*
+@Route /video?id=videoId
+* Method : PUT
+* Access : Admin
+* Body : videoURL, thumbnail, quizTimestamp, quizType, quiz, quizAttachmentType, quizAttachmentData
+*/
+
+exports.updateVideoStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params,
+    { status } = req.body;
+
+  try {
+    if (!id || !status.toString()) {
+      res.status(401);
+      throw new Error(
+        `No parameter included!, hint: ID-${id} Status-${status}`
+      );
+    }
+
+    const updatedVideo = await user.findByIdAndUpdate(
+      id,
+      {
+        validated: status,
+      },
+      { new: true }
+    );
+    if (!updatedVideo) {
+      res.status(400);
+      throw new Error("Invalid User Credentials! please check the ID");
+    }
+
+    res.status(200).json({
+      type: "OK!",
+      message: "User Validated!",
+      data: {
+        ...updatedUser._doc,
+      },
     });
   } catch (err) {
     if (!res.status) res.status(500);
@@ -194,14 +288,22 @@ exports.updateVideo = asyncHandler(async (req, res) => {
     quiz,
     quizAttachmentType,
     quizAttachmentData,
-    thumbnail,
+    description,
+    videoURL,
+    type,
+    // active,
+    title,
   } = req.body;
   const { id } = req.params;
   try {
     const updatedVideo = await video.findByIdAndUpdate(
       id,
       {
-        thumbnail: thumbnail,
+        title: title,
+        videoURL: videoURL,
+        description: description,
+        type: type,
+        // active: active,
         "miniQuiz.quizTimestamp": quizTimestamp,
         "miniQuiz.tipe": quizType,
         "miniQuiz.quiz": {
@@ -209,7 +311,7 @@ exports.updateVideo = asyncHandler(async (req, res) => {
             tipe: quizAttachmentType,
             data: quizAttachmentData,
           },
-          ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
+          // ...(typeof quiz !== "object" ? JSON.parse(quiz) : quiz),
         },
       },
       {
@@ -328,8 +430,6 @@ exports.likeVideo = asyncHandler(async (req, res) => {
         $pull: { vote: { _id: new mongoose.Types.ObjectId(idAnak) } },
       };
       if (type === "dislike") {
-        // hasLiked.vote.length === 0;
-
         likeOperator = {
           $push: {
             vote: { _id: new mongoose.Types.ObjectId(idAnak), type: "dislike" },

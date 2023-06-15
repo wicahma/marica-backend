@@ -1,15 +1,25 @@
 const mongoose = require("mongoose");
 
-const quizType = ["pilihanGanda", "fillTheBlank", "reArrange"];
+const quizType = ["pilihanGanda", "fillTheBlank", "reArrange", ""];
 
 const videoSchema = new mongoose.Schema({
   videoURL: {
     type: String,
     required: [true, "Please desired to adding video url!"],
   },
+  title: {
+    type: String,
+    required: [true, "Please add the video title!"],
+    maxlength: [100, "Title cannot be more than 100 characters!"],
+  },
   thumbnail: {
     type: String,
     required: [true, "Please add the video thumbnail"],
+  },
+  description: {
+    type: String,
+    required: false,
+    maxlength: [2000, "Description cannot be more than 2000 characters!"],
   },
   vote: [
     {
