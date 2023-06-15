@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const series = require("../models/series");
 const video = require("../models/video");
+const { deleteFile } = require("../middlewares/multer");
 
 //ANCHOR - Get All Series
 exports.getAllSeries = asyncHandler(async (req, res) => {
@@ -68,21 +69,83 @@ exports.getSeries = asyncHandler(async (req, res) => {
 */
 
 exports.createSeries = asyncHandler(async (req, res) => {
-  const { judul, deskripsi, thumbnail } = { ...req.body };
+  const { judul, deskripsi, videos } = { ...req.body };
 
   const newSeries = new series({
     judul: judul,
     deskripsi: deskripsi,
-    thumbnail: thumbnail,
+    thumbnail: req.file.filename,
+    dataVideo: videos,
   });
 
   try {
-    const seriesExist = await newSeries.save();
-    if (seriesExist) {
-      res.status(200).json(seriesExist);
+    if (!req.file) {
+      res.status(400);
+      dataVideo;
+      throw new Error("File tidak terinput!");
     }
+
+    const seriesExist = await newSeries.save();
+
+    if (!seriesExist) {
+      deleteFile(req.file.path);
+      res.status(500);
+      throw new Error("Series gagal dibuat!");
+    }
+
+    res.status(200).json({
+      type: "Created!",
+      message: "Series berhasil dibuat!",
+      data: seriesExist,
+    });
   } catch (err) {
-    console.log(err);
+    deleteFile(req.file.path);
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Update Image Series
+/*
+@Route /series/image/:id
+* Method : PUT
+* Access : Admin
+*/
+
+exports.updateImageSeries = asyncHandler(async (req, res) => {
+  try {
+    if (!req.file) {
+      res.status(400);
+      throw new Error("File tidak terinput!");
+    }
+
+    const findSeries = await series.findById(req.params.id);
+
+    const updatedSeries = await series.findByIdAndUpdate(
+      req.params.id,
+      {
+        thumbnail: req.file.filename,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedSeries) {
+      deleteFile(req.file.path);
+      res.status(500);
+      throw new Error("Series update image failed, internal server error!");
+    }
+
+    req.file &&
+      deleteFile(`${__dirname}/../../public/images/${findSeries.thumbnail}`);
+
+    res.status(200).json({
+      message: "Data image updated successfully!",
+      id: updatedSeries._id,
+    });
+  } catch (err) {
+    deleteFile(req.file.path);
     if (!res.status) res.status(500);
     throw new Error(err);
   }
@@ -96,24 +159,29 @@ exports.createSeries = asyncHandler(async (req, res) => {
 */
 
 exports.updateSeries = asyncHandler(async (req, res) => {
-  const data = new series({
-    judul: req.body.judul,
-    deskripsi: req.body.deskripsi,
-    active: req.body.status,
-    dataVideo: req.body.videos,
-  });
-
   try {
+    const data = {
+      judul: req.body.judul,
+      deskripsi: req.body.deskripsi,
+      active: req.body.status,
+      dataVideo: req.body.videos,
+    };    
+
     const seriesExist = await series.findOneAndUpdate(
-      { "dataVideo._id": data.id },
+      { _id: req.params.id },
       data
     );
-    if (seriesExist) {
-      res.status(200).json(seriesExist);
-    } else {
+
+    if (!seriesExist) {
       res.status(400);
       throw new Error("Invalid Series Credentials");
     }
+
+    res.status(200).json({
+      type: "Updated!",
+      message: "Series updated successfully!",
+      data: seriesExist,
+    });
   } catch (err) {
     if (!res.status) res.status(500);
     throw new Error(err);

@@ -8,12 +8,14 @@ const {
   updateSeries,
   deleteSeries,
   getAllSeries,
+  updateImageSeries,
 } = require("../controllers/series");
 const { sessionChecker } = require("../middlewares/session-checker");
 const {
   createSeriesValidator,
   updateSeriesValidator,
 } = require("./validator/series");
+const { thumbnailSeriesHandler } = require("../middlewares/multer");
 
 router
   .route("/")
@@ -28,7 +30,18 @@ router
     authJWT,
     (req, res, next) =>
       sessionChecker(req, res, next, { admin: true, validated: true }),
+    thumbnailSeriesHandler.single("thumbnail"),
     createSeries
+  );
+
+router
+  .route("/image/:id")
+  .put(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
+    thumbnailSeriesHandler.single("thumbnail"),
+    updateImageSeries
   );
 
 router
