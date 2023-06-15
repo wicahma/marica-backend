@@ -6,28 +6,13 @@ const paymentSchema = mongoose.Schema(
       type: String,
       required: [true, "Please add the Payment ID!"],
     },
-    transactionId: {
+    event: {
       type: String,
-      required: [true, "Please add the transaction ID"],
+      required: [true, "Please add the Event Name!"],
     },
-    link: {
-      type: String,
-      required: [true, "Please add the payment Link!"],
-    },
-    idUser: {
-      type: mongoose.Schema.ObjectId,
-      ref: "user",
-      required: true,
-    },
-    expiredAt: {
-      type: Date,
-      required: [true, "Please set the expired date!"],
-    },
-    status: {
-      type: String,
-      enum: ["active", "closed", "paid"],
-      required: [true, "Please add the status!"],
-      default: "active",
+    data: {
+      type: Object,
+      required: [true, "Please add the Payment Data!"],
     },
   },
   {

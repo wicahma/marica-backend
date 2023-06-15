@@ -37,7 +37,7 @@ router
   .post(
     authJWT,
     (req, res, next) =>
-      sessionChecker(req, res, next, { admin: true, validated: true }),
+      sessionChecker(req, res, next, { admin: false, validated: true }),
     paymentRequest
   );
 
@@ -58,6 +58,9 @@ router
 
 //ANCHOR - Callbacks System
 
+//NOTE - Payment Method Callback
+//REVIEW - This is the  payment method that used
+router.route("/callback/payment-method").post(checkPaymentMethod);
 //NOTE - FVA Callback
 router.route("/callback/fva").post(checkFVA);
 router.route("/callback/fva-created").post(checkFVA);
@@ -69,6 +72,7 @@ router.route("/callback/direct-debit/done").post(checkDirectDebit);
 router.route("/callback/direct-debit/expired").post(checkDirectDebit);
 router.route("/callback/direct-debit/return-cash").post(checkDirectDebit);
 //NOTE - Payment Request Callback
+//REVIEW - This is the payment request that used  
 router.route("/callback/payment-request/success").post(checkPaymentRequest);
 router.route("/callback/payment-request/pending").post(checkPaymentRequest);
 router.route("/callback/payment-request/failed").post(checkPaymentRequest);
@@ -85,9 +89,6 @@ router
 router.route("/callback/qr-code").post(checkQRCode);
 //NOTE - Invoice Callback
 router.route("/callback/invoices").post(checkInvoice);
-//NOTE - Payment Method Callback
-//REVIEW - This is the  payment method that used
-router.route("/callback/payment-method").post(checkPaymentMethod);
 //NOTE - Ewallet Callback
 router.route("/callback/e-wallet").post(checkEWallet);
 //NOTE - Disbursment Callback

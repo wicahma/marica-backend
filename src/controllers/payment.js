@@ -55,12 +55,13 @@ exports.createPaymentUser = expressAsyncHandler(async (req, res) => {
 
   try {
     const userData = await user.findById(_id);
-    c.createCustomer({
-      referenceID: userData._id.toString(),
-      givenNames: userData.nama,
-      email: userData.email,
-      apiVersion: "2020-05-19",
-    })
+    await c
+      .createCustomer({
+        referenceID: userData._id.toString(),
+        givenNames: userData.nama,
+        email: userData.email,
+        apiVersion: "2020-05-19",
+      })
       .then((resp) => {
         res.status(200).json({
           type: "Success!",
@@ -69,7 +70,8 @@ exports.createPaymentUser = expressAsyncHandler(async (req, res) => {
         });
       })
       .catch((err) => {
-        throw JSON.stringify(err);
+        res.status(409);
+        throw new Error(err.message);
       });
   } catch (err) {
     if (!res.status) res.status(500);
@@ -86,10 +88,11 @@ exports.getPaymentUser = expressAsyncHandler(async (req, res) => {
     c = new Customer({});
 
   try {
-    c.getCustomerByReferenceID({
-      referenceID: _id.toString(),
-      apiVersion: "2020-05-19",
-    })
+    await c
+      .getCustomerByReferenceID({
+        referenceID: _id.toString(),
+        apiVersion: "2020-05-19",
+      })
       .then((resp) => {
         res.status(200).json({
           type: "Success!",
@@ -106,10 +109,18 @@ exports.getPaymentUser = expressAsyncHandler(async (req, res) => {
   }
 });
 
+// 0821_2878_7656
+
 //NOTE - documentation link: https://developers.xendit.co/api-reference/?javascript#payment-object
 exports.paymentRequest = expressAsyncHandler(async (req, res) => {
   const { PaymentRequest, Customer } = xen;
-  const { paymentType, paymentChannel } = req.body;
+  const {
+    paymentType,
+    paymentChannel: { ewallet, va },
+  } = req.body;
+  const {
+    user: { _id },
+  } = req.session;
   //NOTE - payment_method_type
   /*
   - EWALLET
@@ -134,29 +145,43 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
     success_return_url = "https://marica.id/success",
     failure_return_url = "https://marica.id/failure",
     expires_at = new Date(Date.now() + 86400000).toISOString(),
-    va_channel_code = paymentChannel,
+    va_channel_code = va,
     currency = "IDR",
     country = "ID",
-    ewallet_channel_code = paymentChannel,
+    ewallet_channel_code = ewallet,
     r = new PaymentRequest({}),
     c = new Customer({});
+
   try {
-    const isUserExist = await c.getCustomerByReferenceID({
+    let isUserExist = await c.getCustomerByReferenceID({
       referenceID: _id.toString(),
       apiVersion: "2020-05-19",
     });
-    if (!isUserExist) {
-      throw new Error(
-        "User payment data not created, please Create User data for payment First!"
-      );
+
+    if (isUserExist.length === 0) {
+      const userData = await user.findById(_id);
+      await c
+        .createCustomer({
+          referenceID: userData._id.toString(),
+          givenNames: userData.nama,
+          email: userData.email,
+          apiVersion: "2020-05-19",
+        })
+        .then((resp) => {
+          isUserExist = resp;
+        })
+        .catch((err) => {
+          throw Error(JSON.stringify(err));
+        });
     }
+
     await r
       .createPaymentRequest({
         amount: amount,
         currency: currency,
         description: "Payment untuk fitur berlangganan pengguna",
         country: country,
-        customer_id: isUserExist.id,
+        customer_id: isUserExist[0].id,
         payment_method: {
           type: main_type,
           ewallet: {
@@ -183,7 +208,11 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
         },
       })
       .then((data) => {
-        res.status(200).json({ data });
+        res.status(200).json({
+          status: "Success!",
+          message: "Payment Request succesfully created.",
+          data: data,
+        });
       })
       .catch((err) => {
         res.status(400);
