@@ -12,7 +12,7 @@ const jwt = require("jsonwebtoken");
 // * Main User Controller
 
 // ANCHOR Get All Users
-/*  
+/*
 @Route /user
 * Method : GET
 * Access : Admin
@@ -193,6 +193,46 @@ exports.reLogin = asyncHandler(async (req, res) => {
   }
 });
 
+exports.validateUser = asyncHandler(async (req, res) => {
+  const { id } = req.params,
+    { status } = req.body;
+
+  try {
+    if (!id || !status.toString()) {
+      res.status(401);
+      throw new Error(
+        `No parameter included!, hint: ID-${id} Status-${status}`
+      );
+    }
+
+    const updatedUser = await user.findByIdAndUpdate(
+      id,
+      {
+        validated: status,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedUser) {
+      res.status(400);
+      throw new Error("Invalid User Credentials! please check the ID");
+    }
+
+    res.status(200).json({
+      type: "OK!",
+      message: "User Validated!",
+      data: {
+        ...updatedUser._doc,
+      },
+    });
+  } catch (err) {
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
 // ANCHOR Update User
 /*  
 @Route /user/:id
@@ -204,7 +244,8 @@ exports.reLogin = asyncHandler(async (req, res) => {
 */
 
 exports.updateUser = asyncHandler(async (req, res) => {
-  const { _id } = req.session.user;
+  const { _id } = req.session.user,
+    userID = req.session.user.userType === "admin" ? req.body.id : _id;
 
   const isError = validationResult(req);
   if (!isError.isEmpty()) {
@@ -218,7 +259,6 @@ exports.updateUser = asyncHandler(async (req, res) => {
 
   const data = {
     nama: req.body.nama,
-    imageID: req.body.imageID,
     lahir: req.body.lahir,
     "essentials.username": req.body.username,
     "essentials.phone": req.body.phone,
@@ -229,12 +269,12 @@ exports.updateUser = asyncHandler(async (req, res) => {
     const isTaken = await user.findOne({
       "essentials.username": req.body.username,
     });
-    if (isTaken && isTaken._id !== _id) {
+    if (isTaken && isTaken._id.toString() !== userID) {
       res.status(400);
       throw new Error("Username already taken or that is your username sir :)");
     }
 
-    const userExist = await user.findByIdAndUpdate(_id, data, {
+    const userExist = await user.findByIdAndUpdate(userID, data, {
       new: true,
       runValidators: true,
     });
@@ -315,7 +355,9 @@ exports.updatePassword = asyncHandler(async (req, res) => {
 */
 
 exports.deleteUser = asyncHandler(async (req, res) => {
-  const { _id } = req.session.user;
+  const { _id } = req.session.user,
+    { id } = req.params;
+  const usedID = id ?? _id;
 
   if (!_id) {
     res.status(400);
@@ -323,7 +365,7 @@ exports.deleteUser = asyncHandler(async (req, res) => {
   }
 
   try {
-    const userExist = await user.findByIdAndDelete(_id);
+    const userExist = await user.findByIdAndDelete(usedID);
     if (userExist) {
       req.session.destroy();
       res.status(200).json({
