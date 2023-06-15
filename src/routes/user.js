@@ -15,6 +15,7 @@ const {
   getAllAnak,
   userLogout,
   getLikedVideo,
+  validateUser,
 } = require("../controllers/user");
 const { authJWT } = require("../middlewares/auth");
 const {
@@ -39,7 +40,19 @@ router
     (req, res, next) =>
       sessionChecker(req, res, next, { admin: false, validated: true }),
     updateUser
-  )
+  );
+
+router
+  .route("/validate/:id")
+  .put(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
+    validateUser
+  );
+
+router
+  .route("/:id")
   .delete(
     authJWT,
     (req, res, next) =>
