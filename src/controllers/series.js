@@ -204,14 +204,14 @@ exports.deleteSeries = asyncHandler(async (req, res) => {
   try {
     const seriesExist = await series.findOneAndDelete({ _id: id });
     if (seriesExist) {
-      seriesExist.dataVideo.length > 0
-        ? await video.deleteMany({ _id: seriesExist.dataVideo }).exec()
-        : res.status(200).json({
-            message: "Series without video deleted successfully!",
-            data: seriesExist,
-          });
+      // seriesExist.dataVideo.length > 0
+      //   ? await video.deleteMany({ _id: seriesExist.dataVideo }).exec()
+      //   : res.status(200).json({
+      //       message: "Series without video deleted successfully!",
+      //       data: seriesExist,
+      //     });
       res.status(200).json({
-        message: "Series with video was deleted successfully!",
+        message: "Series was deleted successfully!",
         data: seriesExist,
       });
     }
