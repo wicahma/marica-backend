@@ -33,7 +33,6 @@ exports.getAllVideo = asyncHandler(async (req, res) => {
             videoURL: 1,
             thumbnail: 1,
             type: 1,
-            active: 1,
             title: 1,
             description: 1,
           },
@@ -64,17 +63,21 @@ exports.getVideo = asyncHandler(async (req, res) => {
   let returnData;
 
   try {
+    if (id === "") {
+      res.status(400);
+      throw new Error("Please make sure to input the Video ID!");
+    }
+
     const Video = await video
       .aggregate([
         {
           $match: {
             ...oneVideo,
-            active: true,
           },
         },
         {
           $project: {
-            like: {
+            like: id && {
               $size: {
                 $filter: {
                   input: "$vote",
@@ -83,7 +86,7 @@ exports.getVideo = asyncHandler(async (req, res) => {
                 },
               },
             },
-            dislike: {
+            dislike: id && {
               $size: {
                 $filter: {
                   input: "$vote",
@@ -92,7 +95,9 @@ exports.getVideo = asyncHandler(async (req, res) => {
                 },
               },
             },
-            videoURL: 1,
+            title: 1,
+            ...(id ? { description: 1 } : {}),
+            // videoURL: 0,
             thumbnail: 1,
             type: 1,
           },
@@ -103,7 +108,18 @@ exports.getVideo = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Video not found!");
     }
-    returnData = id ? { data: { ...Video[0] } } : { data: Video };
+
+    if (id) {
+      returnData = { data: { ...Video[0] } };
+      returnData.type === "free"
+        ? (returnData.data.videoURL = Video[0].videoURL)
+        : null;
+    } else {
+      returnData = {
+        data: Video,
+      };
+    }
+
     res.status(200).json({
       type: "Success!",
       message: "Video fetched successfully!",

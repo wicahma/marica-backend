@@ -9,7 +9,37 @@ const xen = new xendit({
   secretKey: process.env.XENDIT_API_KEY.toString(),
 });
 
-// * Main Payment Controller
+// ANCHOR Get Balance
+/*  
+@Route /payment
+* Method : GET
+* Access : Admin
+* Session: ID Admin
+* Body   : -
+*/
+
+exports.getAllPayment = expressAsyncHandler(async (req, res) => {
+  try {
+    const payments = await payment.find();
+    res.status(200).json({
+      type: "Success!",
+      message: "Successfully get all payments!",
+      data: payments,
+    });
+  } catch (err) {
+    if (!res.status) res.status(500);
+    throw new Error(err);
+  }
+});
+
+// ANCHOR Get Balance
+/*  
+@Route /payment/balance
+* Method : GET
+* Access : Admin
+* Session: ID Admin
+* Body   : -
+*/
 
 exports.getBalance = expressAsyncHandler(async (req, res) => {
   try {
@@ -44,7 +74,15 @@ exports.getBalance = expressAsyncHandler(async (req, res) => {
   }
 });
 
-//ANCHOR - Create Payment User
+// ANCHOR Create Payment User Request
+/*  
+@Route /payment/user
+* Method : POST
+* Access : Admin
+* Session: ID Admin
+* Body   : -
+*/
+
 exports.createPaymentUser = expressAsyncHandler(async (req, res) => {
   const {
       id,
@@ -79,6 +117,15 @@ exports.createPaymentUser = expressAsyncHandler(async (req, res) => {
   }
 });
 
+// ANCHOR Get Payment User
+/*  
+@Route /payment/user
+* Method : GET
+* Access : User
+* Session: ID User
+* Body   : -
+*/
+
 exports.getPaymentUser = expressAsyncHandler(async (req, res) => {
   const {
       id,
@@ -109,9 +156,32 @@ exports.getPaymentUser = expressAsyncHandler(async (req, res) => {
   }
 });
 
-// 0821_2878_7656
+// ANCHOR Create Payment Request
+/*  
+@Route /payment
+* Method : POST
+* Access : Orangtua
+* Session: ID Admin
+* Body   :  paymentType, paymentChannel: { ewallet, va }
+*/
 
-//NOTE - documentation link: https://developers.xendit.co/api-reference/?javascript#payment-object
+//NOTE - payment_method_type
+/*
+- EWALLET
+    > DANA
+    > ASTRAPAY
+    > OVO
+- VIRTUAL_ACCOUNT 
+    > BSI
+    > BJB
+    > SAHABAT_SAMPOERNA
+    > PERMATA
+    > BRI
+    > BNI
+    > MANDIRI
+- QR_CODE (QRIS)
+*/
+
 exports.paymentRequest = expressAsyncHandler(async (req, res) => {
   const { PaymentRequest, Customer } = xen;
   const {
@@ -121,22 +191,6 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
   const {
     user: { _id },
   } = req.session;
-  //NOTE - payment_method_type
-  /*
-  - EWALLET
-      > DANA
-      > ASTRAPAY
-      > OVO
-  - VIRTUAL_ACCOUNT 
-      > BSI
-      > BJB
-      > SAHABAT_SAMPOERNA
-      > PERMATA
-      > BRI
-      > BNI
-      > MANDIRI
-  - QR_CODE (QRIS)
-  */
   const main_type = paymentType,
     admin_fee = 5_000,
     name = "Teguh Dwi Cahya Kusuma",
@@ -225,7 +279,7 @@ exports.paymentRequest = expressAsyncHandler(async (req, res) => {
   }
 });
 
-//REVIEW - Mayar Old Method
+//!SECTION - Mayar Old Method
 
 // ANCHOR Get One Payment
 /*

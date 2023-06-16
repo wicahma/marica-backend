@@ -7,6 +7,7 @@ const {
   paymentRequest,
   createPaymentUser,
   getPaymentUser,
+  getAllPayment,
 } = require("../controllers/payment");
 const { authJWT } = require("../middlewares/auth");
 const { sessionChecker } = require("../middlewares/session-checker");
@@ -39,6 +40,12 @@ router
     (req, res, next) =>
       sessionChecker(req, res, next, { admin: false, validated: true }),
     paymentRequest
+  )
+  .get(
+    authJWT,
+    (req, res, next) =>
+      sessionChecker(req, res, next, { admin: true, validated: true }),
+    getAllPayment
   );
 
 router
@@ -72,7 +79,7 @@ router.route("/callback/direct-debit/done").post(checkDirectDebit);
 router.route("/callback/direct-debit/expired").post(checkDirectDebit);
 router.route("/callback/direct-debit/return-cash").post(checkDirectDebit);
 //NOTE - Payment Request Callback
-//REVIEW - This is the payment request that used  
+//REVIEW - This is the payment request that used
 router.route("/callback/payment-request/success").post(checkPaymentRequest);
 router.route("/callback/payment-request/pending").post(checkPaymentRequest);
 router.route("/callback/payment-request/failed").post(checkPaymentRequest);

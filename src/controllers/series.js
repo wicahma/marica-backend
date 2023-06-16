@@ -32,22 +32,26 @@ exports.getSeries = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Please make sure to input the Series ID!");
     }
+
+    const withID = id ? { _id: id, active: true } : { active: true };
+
     const Series = await series
-      .find(
-        (id && {
-          _id: id,
-        }) || { active: true }
-      )
+      .find(withID)
       .populate({
         path: "dataVideo",
-        match: { active: true },
-        select: id
-          ? { __v: 0, active: 0 }
-          : { quizTimestamp: 0, miniQuiz: 0, active: 0, __v: 0 },
+        // match: { active: true },
+        select: {
+          title: 1,
+          thumbnail: 1,
+          type: 1,
+        },
       })
       .select({
-        __v: 0,
-        dataVideo: id ? 1 : 0,
+        judul: 1,
+        deskripsi: 1,
+        thumbnail: 1,
+        createdAt: 1,
+        dataVideo: 1,
       });
 
     if (Series.length === 0 && id) {
@@ -163,9 +167,9 @@ exports.updateSeries = asyncHandler(async (req, res) => {
     const data = {
       judul: req.body.judul,
       deskripsi: req.body.deskripsi,
-      active: req.body.status,
+      active: req.body.active,
       dataVideo: req.body.videos,
-    };    
+    };
 
     const seriesExist = await series.findOneAndUpdate(
       { _id: req.params.id },
